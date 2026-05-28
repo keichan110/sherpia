@@ -28,7 +28,7 @@ jobs:
 
       - name: Create .clasprc.json
         run: |
-          echo '{"token":{"access_token":"dummy","scope":"https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/script.deployments https://www.googleapis.com/auth/script.webapp.deploy https://www.googleapis.com/auth/drive.file","token_type":"Bearer","expiry_date":0,"refresh_token":"${{ secrets.CLASP_REFRESH_TOKEN }}"},"oauth2ClientSettings":{"clientId":"${{ secrets.CLASP_CLIENT_ID }}","clientSecret":"${{ secrets.CLASP_CLIENT_SECRET }}","redirectUri":"http://localhost"},"isLocalCreds":false}' > ~/.clasprc.json
+          echo '{"tokens":{"default":{"client_id":"${{ secrets.CLASP_CLIENT_ID }}","client_secret":"${{ secrets.CLASP_CLIENT_SECRET }}","type":"authorized_user","refresh_token":"${{ secrets.CLASP_REFRESH_TOKEN }}","access_token":"dummy","token_type":"Bearer","expiry_date":0}}}' > ~/.clasprc.json
 
       - name: Create .clasp.json
         run: |
