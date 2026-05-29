@@ -6,7 +6,7 @@ declare const global: {
 };
 
 global.doPost = (_e) => {
-    return ContentService.createTextOutput(
-        JSON.stringify({status: 'ok'})
-    ).setMimeType(ContentService.MimeType.JSON)
-}
+  return ContentService.createTextOutput(JSON.stringify({ status: 'ok' })).setMimeType(
+    ContentService.MimeType.JSON
+  );
+};
