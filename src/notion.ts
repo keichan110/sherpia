@@ -1,12 +1,19 @@
-import { type Config } from './config';
 import { type GeminiResult } from './gemini';
 import { getTodayString, getWeekString } from './utils';
 
-export function writeToNotion(data: GeminiResult, url: string, config: Config): void {
+export type NotionDbId = string;
+export type NotionApiKey = string;
+
+export function writeToNotion(
+  data: GeminiResult,
+  url: string,
+  notionDbId: NotionDbId,
+  notionApiKey: NotionApiKey,
+): void {
   const endpoint = 'https://api.notion.com/v1/pages';
 
   const payload = {
-    parent: { database_id: config.notionDbId },
+    parent: { database_id: notionDbId },
     properties: {
       タイトル: { title: [{ text: { content: data.title } }] },
       URL: { url },
@@ -25,7 +32,7 @@ export function writeToNotion(data: GeminiResult, url: string, config: Config): 
     method: 'post',
     contentType: 'application/json',
     headers: {
-      Authorization: `Bearer ${config.notionApiKey}`,
+      Authorization: `Bearer ${notionApiKey}`,
       'Notion-Version': '2022-06-28',
     },
     payload: JSON.stringify(payload),

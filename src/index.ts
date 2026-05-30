@@ -10,7 +10,7 @@ declare const global: {
 };
 
 global.doPost = (e) => {
-  const config = getConfig();
+  const { secretToken, geminiModel, geminiApiKey, notionDbId, notionApiKey } = getConfig();
 
   let body: { token?: string; url?: string };
   try {
@@ -19,7 +19,7 @@ global.doPost = (e) => {
     return createResponse(false, 'Invalid JSON');
   }
 
-  if (body.token !== config.secretToken) {
+  if (body.token !== secretToken) {
     return createResponse(false, 'Unauthorized');
   }
 
@@ -35,13 +35,13 @@ global.doPost = (e) => {
 
   let geminiResult;
   try {
-    geminiResult = callGeminiAPI(articleText, config);
+    geminiResult = callGeminiAPI(articleText, geminiModel, geminiApiKey);
   } catch {
     return createResponse(false, 'Failed to summarize');
   }
 
   try {
-    writeToNotion(geminiResult, url, config);
+    writeToNotion(geminiResult, url, notionDbId, notionApiKey);
   } catch (err) {
     return createResponse(false, `Notion write failed: ${String(err)}`);
   }
@@ -50,15 +50,15 @@ global.doPost = (e) => {
 };
 
 global.testRun = () => {
-  const config = getConfig();
+  const { geminiModel, geminiApiKey, notionDbId, notionApiKey } = getConfig();
   const testUrl = 'https://zenn.dev/';
 
   const articleText = fetchArticleContent(testUrl);
   Logger.log(`Fetched: ${articleText.substring(0, 200)}`);
 
-  const result = callGeminiAPI(articleText, config);
+  const result = callGeminiAPI(articleText, geminiModel, geminiApiKey);
   Logger.log(JSON.stringify(result));
 
-  writeToNotion(result, testUrl, config);
+  writeToNotion(result, testUrl, notionDbId, notionApiKey);
   Logger.log('Done');
 };

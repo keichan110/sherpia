@@ -1,9 +1,12 @@
+import type { GeminiApiKey, GeminiModel } from './gemini';
+import type { NotionApiKey, NotionDbId } from './notion';
+
 export type Config = {
   secretToken: string;
-  geminiApiKey: string;
-  geminiModel: string;
-  notionApiKey: string;
-  notionDbId: string;
+  geminiApiKey: GeminiApiKey;
+  geminiModel: GeminiModel;
+  notionApiKey: NotionApiKey;
+  notionDbId: NotionDbId;
 };
 
 export function getConfig(): Config {

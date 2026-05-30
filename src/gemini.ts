@@ -1,4 +1,5 @@
-import { type Config } from './config';
+export type GeminiModel = string;
+export type GeminiApiKey = string;
 
 export type GeminiResult = {
   title: string;
@@ -25,8 +26,12 @@ ${articleText}
   "confidence": "high/medium/low（本文の情報量の自己評価）"
 }`;
 
-export function callGeminiAPI(articleText: string, config: Config): GeminiResult {
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${config.geminiModel}:generateContent?key=${config.geminiApiKey}`;
+export function callGeminiAPI(
+  articleText: string,
+  geminiModel: GeminiModel,
+  geminiApiKey: GeminiApiKey,
+): GeminiResult {
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`;
 
   const payload = {
     contents: [{ parts: [{ text: PROMPT_TEMPLATE(articleText) }] }],
