@@ -5,7 +5,11 @@ import { writeToNotion } from './notion';
 const mockData: GeminiResult = {
   title: 'テスト記事',
   tldr: '要約文',
-  summary: '詳細要約',
+  summary: [
+    { heading: '背景', body: '背景の詳細' },
+    { heading: '内容', body: '内容の詳細' },
+    { heading: 'まとめ', body: 'まとめの詳細' },
+  ],
   category: 'AI/ML',
   tags: ['TypeScript', 'Vitest'],
   confidence: 'high',
@@ -69,7 +73,12 @@ describe('writeToNotion', () => {
     expect(payload.children[0].heading_2.rich_text[0].text.content).toBe('TL;DR');
     expect(payload.children[1].paragraph.rich_text[0].text.content).toBe('要約文');
     expect(payload.children[2].heading_2.rich_text[0].text.content).toBe('要約');
-    expect(payload.children[3].paragraph.rich_text[0].text.content).toBe('詳細要約');
+    expect(payload.children[3].heading_3.rich_text[0].text.content).toBe('背景');
+    expect(payload.children[4].paragraph.rich_text[0].text.content).toBe('背景の詳細');
+    expect(payload.children[5].heading_3.rich_text[0].text.content).toBe('内容');
+    expect(payload.children[6].paragraph.rich_text[0].text.content).toBe('内容の詳細');
+    expect(payload.children[7].heading_3.rich_text[0].text.content).toBe('まとめ');
+    expect(payload.children[8].paragraph.rich_text[0].text.content).toBe('まとめの詳細');
   });
 
   it('200以外のレスポンスの場合はエラーを投げる', () => {

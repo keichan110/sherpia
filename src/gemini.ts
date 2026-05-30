@@ -7,10 +7,15 @@ export type GeminiModel =
   | 'gemini-2.5-pro';
 export type GeminiApiKey = string;
 
+export type SummarySection = {
+  heading: string;
+  body: string;
+};
+
 export type GeminiResult = {
   title: string;
   tldr: string;
-  summary: string;
+  summary: SummarySection[];
   category: string;
   tags: string[];
   confidence: 'high' | 'medium' | 'low';
@@ -28,7 +33,11 @@ ${articleText}
 {
   "title": "記事タイトル（元タイトルが適切なら流用）",
   "tldr": "60文字以内。1文目：何の記事か。2文目：なぜ重要か",
-  "summary": "200〜300文字。技術背景・経緯を含む詳細要約",
+  "summary": [
+    { "heading": "背景", "body": "..." },
+    { "heading": "内容", "body": "..." },
+    { "heading": "まとめ", "body": "..." }
+  ],
   "category": "AI/ML、開発、インフラ、セキュリティ、ビジネス、ツール、マネジメント、自己啓発、その他 のいずれか1つ",
   "tags": ["固有名詞・技術名を優先した3〜5個のキーワード"],
   "confidence": "high/medium/low（本文の情報量の自己評価）"

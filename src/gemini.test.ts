@@ -5,7 +5,11 @@ import { callGeminiAPI } from './gemini';
 const validResult: GeminiResult = {
   title: 'テスト記事',
   tldr: '要約文',
-  summary: '詳細要約',
+  summary: [
+    { heading: '背景', body: '背景の詳細' },
+    { heading: '内容', body: '内容の詳細' },
+    { heading: 'まとめ', body: 'まとめの詳細' },
+  ],
   category: 'AI/ML',
   tags: ['TypeScript', 'Vitest'],
   confidence: 'high',

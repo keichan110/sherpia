@@ -38,11 +38,18 @@ export function writeToNotion(
         type: 'heading_2',
         heading_2: { rich_text: [{ type: 'text', text: { content: '要約' } }] },
       },
-      {
-        object: 'block',
-        type: 'paragraph',
-        paragraph: { rich_text: [{ type: 'text', text: { content: data.summary } }] },
-      },
+      ...data.summary.flatMap((section) => [
+        {
+          object: 'block',
+          type: 'heading_3',
+          heading_3: { rich_text: [{ type: 'text', text: { content: section.heading } }] },
+        },
+        {
+          object: 'block',
+          type: 'paragraph',
+          paragraph: { rich_text: [{ type: 'text', text: { content: section.body } }] },
+        },
+      ]),
     ],
   };
 
