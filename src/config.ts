@@ -9,6 +9,10 @@ export type Config = {
   notionDbId: NotionDbId;
 };
 
+/**
+ * GASスクリプトプロパティから設定値を読み込んで返す。
+ * @returns アプリケーション設定オブジェクト
+ */
 export function getConfig(): Config {
   const scriptProperties = PropertiesService.getScriptProperties();
   return {
