@@ -8,6 +8,8 @@ on:
       - "*.md"
       - ".github/**"
       - ".gitignore"
+      - ".claude/**"
+      - "biome.json"
 
 jobs:
   deploy:
