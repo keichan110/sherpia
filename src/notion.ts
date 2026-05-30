@@ -19,7 +19,7 @@ export function writeToNotion(
       URL: { url },
       'TL;DR': { rich_text: [{ text: { content: data.tldr } }] },
       要約: { rich_text: [{ text: { content: data.summary } }] },
-      大分類: { select: { name: data.category } },
+      カテゴリー: { select: { name: data.category } },
       タグ: { multi_select: data.tags.map((tag) => ({ name: tag })) },
       保存日: { date: { start: getTodayString() } },
       ステータス: { select: { name: '完了' } },
