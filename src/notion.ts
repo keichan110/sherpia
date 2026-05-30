@@ -17,13 +17,33 @@ export function writeToNotion(
       タイトル: { title: [{ text: { content: data.title } }] },
       既読: { checkbox: false },
       URL: { url },
-      'TL;DR': { rich_text: [{ text: { content: data.tldr } }] },
-      要約: { rich_text: [{ text: { content: data.summary } }] },
       カテゴリー: { select: { name: data.category } },
       タグ: { multi_select: data.tags.map((tag) => ({ name: tag })) },
       ステータス: { select: { name: '完了' } },
       Confidence: { select: { name: data.confidence } },
     },
+    children: [
+      {
+        object: 'block',
+        type: 'heading_2',
+        heading_2: { rich_text: [{ type: 'text', text: { content: 'TL;DR' } }] },
+      },
+      {
+        object: 'block',
+        type: 'paragraph',
+        paragraph: { rich_text: [{ type: 'text', text: { content: data.tldr } }] },
+      },
+      {
+        object: 'block',
+        type: 'heading_2',
+        heading_2: { rich_text: [{ type: 'text', text: { content: '要約' } }] },
+      },
+      {
+        object: 'block',
+        type: 'paragraph',
+        paragraph: { rich_text: [{ type: 'text', text: { content: data.summary } }] },
+      },
+    ],
   };
 
   const response = UrlFetchApp.fetch(endpoint, {

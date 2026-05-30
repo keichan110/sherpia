@@ -57,7 +57,6 @@ describe('writeToNotion', () => {
     expect(payload.properties['タイトル'].title[0].text.content).toBe('テスト記事');
     expect(payload.properties['既読'].checkbox).toBe(false);
     expect(payload.properties.URL.url).toBe('https://example.com');
-    expect(payload.properties['TL;DR'].rich_text[0].text.content).toBe('要約文');
     // biome-ignore lint/complexity/useLiteralKeys: 日本語キーはブラケット記法を維持
     expect(payload.properties['カテゴリー'].select.name).toBe('AI/ML');
     // biome-ignore lint/complexity/useLiteralKeys: 日本語キーはブラケット記法を維持
@@ -66,6 +65,11 @@ describe('writeToNotion', () => {
       { name: 'Vitest' },
     ]);
     expect(payload.properties.Confidence.select.name).toBe('high');
+
+    expect(payload.children[0].heading_2.rich_text[0].text.content).toBe('TL;DR');
+    expect(payload.children[1].paragraph.rich_text[0].text.content).toBe('要約文');
+    expect(payload.children[2].heading_2.rich_text[0].text.content).toBe('要約');
+    expect(payload.children[3].paragraph.rich_text[0].text.content).toBe('詳細要約');
   });
 
   it('200以外のレスポンスの場合はエラーを投げる', () => {
