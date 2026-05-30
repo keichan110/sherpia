@@ -37,7 +37,7 @@ describe('getConfig', () => {
     expect(config).toEqual({
       secretToken: '',
       geminiApiKey: '',
-      geminiModel: 'gemini-2.5-flash',
+      geminiModel: 'gemini-3.5-flash',
       notionApiKey: '',
       notionDbId: '',
     });
