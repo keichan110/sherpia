@@ -55,10 +55,11 @@ describe('writeToNotion', () => {
     expect(payload.parent.database_id).toBe('db-id');
     // biome-ignore lint/complexity/useLiteralKeys: 日本語キーはブラケット記法を維持
     expect(payload.properties['タイトル'].title[0].text.content).toBe('テスト記事');
+    expect(payload.properties['既読'].checkbox).toBe(false);
     expect(payload.properties.URL.url).toBe('https://example.com');
     expect(payload.properties['TL;DR'].rich_text[0].text.content).toBe('要約文');
     // biome-ignore lint/complexity/useLiteralKeys: 日本語キーはブラケット記法を維持
-    expect(payload.properties['大分類'].select.name).toBe('AI/ML');
+    expect(payload.properties['カテゴリー'].select.name).toBe('AI/ML');
     // biome-ignore lint/complexity/useLiteralKeys: 日本語キーはブラケット記法を維持
     expect(payload.properties['タグ'].multi_select).toEqual([
       { name: 'TypeScript' },
