@@ -66,3 +66,5 @@ writeToNotion() [notion.ts]       ← Notion API v2022-06-28 でページ作成
 ## コードスタイル
 
 - フォーマット・lintはBiome（`biome.json`の設定に従う）
+- exportされる関数（public API）はファイルの先頭にまとめ、内部ヘルパー関数は末尾に置く
+- すべての関数にTSDoc準拠のコメントを付ける（`@param`・`@returns` を含める）
