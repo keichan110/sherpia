@@ -12,4 +12,3 @@ paths:
 - フォーマット・lint は Biome を使う（`pnpm check` で自動修正）
 - `export` する型・関数はファイルの先頭、内部ヘルパーは末尾に置く
 - すべての `export` 関数に TSDoc コメントを付ける（`@param`・`@returns` は必須）
-- ログは `src/log.ts` の `log` オブジェクトを使う（`docs/logging-rules.md` 参照）
