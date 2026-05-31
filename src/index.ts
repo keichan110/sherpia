@@ -108,19 +108,17 @@ function testRegisterPending() {
   const { notionDbId, notionAccessToken } = getConfig();
   const testUrl = 'https://zenn.dev/';
 
-  Logger.log('=== 仮登録テスト開始 ===');
+  log.info('testRegisterPending', 'start', { url: testUrl });
   let pageId: string;
   try {
     pageId = createPendingRecord(testUrl, notionDbId, notionAccessToken);
-    Logger.log(`仮登録完了: ${pageId}`);
   } catch (err) {
-    Logger.log(`ERROR: 仮登録失敗 - ${String(err)}`);
+    log.error('testRegisterPending', 'createPendingRecord failed', err, { url: testUrl });
     return;
   }
 
   setHasPending();
-  Logger.log('HAS_PENDINGフラグをセット');
-  Logger.log('=== テスト完了 ===');
+  log.info('testRegisterPending', 'done', { pageId });
 }
 
 /**
@@ -129,7 +127,7 @@ function testRegisterPending() {
  */
 // biome-ignore lint/correctness/noUnusedVariables: GAS entry point
 function testProcessPending() {
-  Logger.log('=== 処理テスト開始 ===');
+  log.info('testProcessPending', 'start');
   processPendingArticles();
-  Logger.log('=== テスト完了 ===');
+  log.info('testProcessPending', 'done');
 }
