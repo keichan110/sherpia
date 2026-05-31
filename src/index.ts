@@ -222,15 +222,15 @@ function testRun() {
 }
 
 /**
- * フェーズ5: 仮登録→Jina→Gemini→Notion更新の非同期フロー全体を検証するデバッグ関数。
+ * フェーズ5-Step1: テストURLをNotionに仮登録し、HAS_PENDINGフラグを立てるデバッグ関数。
+ * 実行後、GASスクリプトプロパティの HAS_PENDING が設定されることを確認する。
  */
 // biome-ignore lint/correctness/noUnusedVariables: GAS entry point
-function testRunAsync() {
-  const { geminiModel, geminiApiKey, notionDbId, notionAccessToken } = getConfig();
+function testRegisterPending() {
+  const { notionDbId, notionAccessToken } = getConfig();
   const testUrl = 'https://zenn.dev/';
 
-  Logger.log('=== 統合テスト開始（非同期フロー） ===');
-  Logger.log('Step1: 仮登録...');
+  Logger.log('=== 仮登録テスト開始 ===');
   let pageId: string;
   try {
     pageId = createPendingRecord(testUrl, notionDbId, notionAccessToken);
@@ -240,32 +240,18 @@ function testRunAsync() {
     return;
   }
 
-  Logger.log('Step2: Jina取得...');
-  const articleText = fetchArticleContent(testUrl);
-  if (!articleText) {
-    Logger.log('ERROR: Jinaフェッチ失敗');
-    updateRecord(pageId, null, 'エラー', notionAccessToken);
-    return;
-  }
-  Logger.log(`取得文字数: ${articleText.length}`);
+  setHasPending();
+  Logger.log('HAS_PENDINGフラグをセット');
+  Logger.log('=== テスト完了 ===');
+}
 
-  Logger.log('Step3: Gemini要約...');
-  let result: GeminiResult;
-  try {
-    result = callGeminiAPI(articleText, geminiModel, geminiApiKey);
-  } catch (err) {
-    Logger.log(`ERROR: Gemini失敗 - ${String(err)}`);
-    updateRecord(pageId, null, 'エラー', notionAccessToken);
-    return;
-  }
-  Logger.log(JSON.stringify(result));
-
-  Logger.log('Step4: Notion更新...');
-  try {
-    updateRecord(pageId, result, '完了', notionAccessToken);
-  } catch (err) {
-    Logger.log(`ERROR: Notion更新失敗 - ${String(err)}`);
-    return;
-  }
-  Logger.log('=== 統合テスト完了 ===');
+/**
+ * フェーズ5-Step2: NotionのPendingレコードを1件取り出し、Jina→Gemini→Notion更新を実行するデバッグ関数。
+ * testRegisterPending の実行後に呼び出す。
+ */
+// biome-ignore lint/correctness/noUnusedVariables: GAS entry point
+function testProcessPending() {
+  Logger.log('=== 処理テスト開始 ===');
+  processPendingArticles();
+  Logger.log('=== テスト完了 ===');
 }
