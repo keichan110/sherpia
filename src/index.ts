@@ -131,3 +131,23 @@ function testProcessPending() {
   processPendingArticles();
   log.info('testProcessPending', 'done');
 }
+
+/**
+ * doPost の動作をGASエディタから直接確認するデバッグ関数。
+ * スクリプトプロパティの SECRET_TOKEN を使って正しいtokenでリクエストをシミュレートする。
+ * 実行後、Notionに「処理中」レコードが作成されれば doPost は正常動作している。
+ */
+// biome-ignore lint/correctness/noUnusedVariables: GAS entry point
+function debugDoPost() {
+  const secretToken = PropertiesService.getScriptProperties().getProperty('SECRET_TOKEN') ?? '';
+  log.info('debugDoPost', 'SECRET_TOKEN loaded', { tokenLength: secretToken.length });
+
+  const fakeEvent = {
+    postData: {
+      contents: JSON.stringify({ token: secretToken, url: 'https://example.com' }),
+    },
+  } as unknown as GoogleAppsScript.Events.DoPost;
+
+  const result = doPost(fakeEvent);
+  log.info('debugDoPost', 'response', { body: result.getContent() });
+}
