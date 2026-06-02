@@ -29,7 +29,11 @@ export function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Cont
   }
 
   // TODO(dev-log): 本番運用時に削除
-  log.info('doPost', 'token check', { match: body.token === secretToken, bodyTokenLength: body.token?.length ?? 0, secretTokenLength: secretToken.length });
+  log.info('doPost', 'token check', {
+    match: body.token === secretToken,
+    bodyTokenLength: body.token?.length ?? 0,
+    secretTokenLength: secretToken.length,
+  });
 
   if (body.token !== secretToken) {
     return createResponse(false, 'Unauthorized');
