@@ -41,4 +41,5 @@ jobs:
       - run: pnpm exec clasp push --force
 
       - name: Deploy new version
-        run: pnpm exec clasp deploy -i "${{ secrets.CLASP_DEPLOYMENT_ID }}" -d "Deploy from CI: ${{ github.sha }}"
+        run: |
+          pnpm exec clasp deploy -i "${{ secrets.CLASP_DEPLOYMENT_ID }}" -d "Deploy from CI: ${{ github.sha }}"
