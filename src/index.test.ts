@@ -192,6 +192,19 @@ describe('processPendingArticles', () => {
 
     expect(updateRecord).toHaveBeenCalledWith('page-1', null, 'エラー', 'notion-key');
   });
+
+  it('エラーステータスへの更新が失敗しても例外を投げずに終了する', () => {
+    vi.mocked(hasPending).mockReturnValue(true);
+    vi.mocked(queryPendingRecord).mockReturnValue({ id: 'page-1', url: 'https://example.com' });
+    vi.mocked(fetchArticleContent).mockImplementation(() => {
+      throw new Error('fetch failed');
+    });
+    vi.mocked(updateRecord).mockImplementation(() => {
+      throw new Error('notion update failed');
+    });
+
+    expect(() => processPendingArticles()).not.toThrow();
+  });
 });
 
 describe('processTrendingQiita', () => {

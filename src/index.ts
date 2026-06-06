@@ -142,7 +142,13 @@ export function processPendingArticles(): void {
       pageId: pending.id,
       url: pending.url,
     });
-    updateRecord(pending.id, null, 'エラー', notionAccessToken);
+    try {
+      updateRecord(pending.id, null, 'エラー', notionAccessToken);
+    } catch (updateErr) {
+      log.error('processPendingArticles', 'failed to update error status', updateErr, {
+        pageId: pending.id,
+      });
+    }
     return;
   }
 
