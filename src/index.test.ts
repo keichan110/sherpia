@@ -97,7 +97,7 @@ describe('doPost', () => {
     );
   });
 
-  it('登録済みURLの場合はHAS_PENDINGをセットせずacceptedを返す', () => {
+  it('登録済みURLの場合はHAS_PENDINGをセットせずduplicateを返す', () => {
     vi.mocked(createPendingRecord).mockImplementation(() => {
       throw new DuplicateUrlError('https://example.com');
     });
@@ -106,7 +106,7 @@ describe('doPost', () => {
 
     expect(setHasPending).not.toHaveBeenCalled();
     expect(ContentService.createTextOutput).toHaveBeenCalledWith(
-      JSON.stringify({ success: true, message: 'accepted' })
+      JSON.stringify({ success: false, message: 'This URL has already been registered' })
     );
   });
 

@@ -30,11 +30,17 @@ export function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Cont
     return createResponse(false, 'URL is required');
   }
 
+  let result: 'registered' | 'duplicate';
   try {
-    registerPendingUrl(url);
+    result = registerPendingUrl(url);
   } catch (err) {
     log.error('doPost', 'notion write failed', err, { url });
     return createResponse(false, `Notion write failed: ${String(err)}`);
+  }
+
+  if (result === 'duplicate') {
+    log.error('doPost', 'duplicate', undefined, { url });
+    return createResponse(false, 'This URL has already been registered');
   }
 
   log.info('doPost', 'accepted', { url });
@@ -129,7 +135,7 @@ export function processPendingArticles(): void {
   }
 }
 
-function registerPendingUrl(url: string): void {
+function registerPendingUrl(url: string): 'registered' | 'duplicate' {
   const { notionDbId, notionAccessToken } = getConfig();
   const normalizedUrl = stripQueryString(url);
   try {
@@ -137,9 +143,10 @@ function registerPendingUrl(url: string): void {
   } catch (err) {
     if (err instanceof DuplicateUrlError) {
       log.info('registerPendingUrl', 'skip duplicate', { url: normalizedUrl });
-      return;
+      return 'duplicate';
     }
     throw err;
   }
   setHasPending();
+  return 'registered';
 }
