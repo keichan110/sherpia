@@ -44,7 +44,7 @@ export function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Cont
 
 /**
  * QiitaのトレンドフィードからURLを取得してNotionに仮登録する。
- * GASタイムトリガー（週次）から呼び出される。
+ * GASタイムトリガー（日次）から呼び出される。
  */
 export function processTrendingQiita(): void {
   const urls = fetchQiitaTrendUrls();
@@ -65,7 +65,7 @@ export function processTrendingQiita(): void {
 
 /**
  * ZennのトレンドフィードからURLを取得してNotionに仮登録する。
- * GASタイムトリガー（週次）から呼び出される。
+ * GASタイムトリガー（日次）から呼び出される。
  */
 export function processTrendingZenn(): void {
   const urls = fetchZennTrendUrls();
@@ -127,26 +127,6 @@ export function processPendingArticles(): void {
   if (!next) {
     clearHasPending();
   }
-}
-
-/**
- * ZennトレンドフィードからURL一覧を取得してログに出力する。
- * GASエディタから手動実行してURLが正しく取得できるか確認するためのデバッグ用関数。
- */
-export function testFetchZennUrls(): void {
-  const urls = fetchZennTrendUrls();
-  // TODO(dev-log): 本番運用時に削除
-  log.info('testFetchZennUrls', 'fetched', { count: urls.length, urls });
-}
-
-/**
- * QiitaトレンドフィードからURL一覧を取得してログに出力する。
- * GASエディタから手動実行してURLが正しく取得できるか確認するためのデバッグ用関数。
- */
-export function testFetchQiitaUrls(): void {
-  const urls = fetchQiitaTrendUrls();
-  // TODO(dev-log): 本番運用時に削除
-  log.info('testFetchQiitaUrls', 'fetched', { count: urls.length, urls });
 }
 
 function registerPendingUrl(url: string): void {
