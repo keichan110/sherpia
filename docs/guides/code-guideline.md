@@ -27,16 +27,22 @@ pnpm check      # lint + format（--write で自動修正）
 ## ファイル構成の規約
 
 ```ts
-// 1. export する関数・型（public API）をファイルの先頭にまとめる
+// 1. 定数（内部・外部問わず）を import の直後に置く
+const MAX_RETRIES = 3;
+export const DEFAULT_TIMEOUT = 5000;
+
+// 2. export する関数・型（public API）
 export type MyType = { ... };
 export function publicFunction() { ... }
 
-// 2. 内部ヘルパー関数はファイルの末尾に置く
+// 3. 内部ヘルパー関数はファイルの末尾に置く
 function internalHelper() { ... }
 ```
 
-- `export` する型・関数はファイルの**先頭**にまとめる
-- 外部から呼ばれない内部ヘルパーはファイルの**末尾**に置く
+- 定数（`export` の有無を問わず）はファイルの**先頭**（import の直後）にまとめる
+  - どの値をこのモジュールが使用しているかが一目でわかるようにするため
+- `export` する型・関数はその次にまとめる
+- 外部から呼ばれない内部ヘルパー関数はファイルの**末尾**に置く
 
 ---
 
