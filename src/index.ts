@@ -30,17 +30,15 @@ export function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Cont
     return createResponse(false, 'URL is required');
   }
 
-  let result: 'registered' | 'duplicate';
   try {
-    result = registerPendingUrl(url);
+    registerPendingUrl(url);
   } catch (err) {
+    if (err instanceof DuplicateUrlError) {
+      log.error('doPost', 'duplicate', err, { url });
+      return createResponse(false, 'This URL has already been registered');
+    }
     log.error('doPost', 'notion write failed', err, { url });
     return createResponse(false, `Notion write failed: ${String(err)}`);
-  }
-
-  if (result === 'duplicate') {
-    log.error('doPost', 'duplicate', undefined, { url });
-    return createResponse(false, 'This URL has already been registered');
   }
 
   log.info('doPost', 'accepted', { url });
@@ -62,7 +60,12 @@ export function processTrendingQiita(): void {
       registerPendingUrl(url);
       registered++;
     } catch (err) {
-      log.error('processTrendingQiita', 'register failed', err, { url });
+      if (err instanceof DuplicateUrlError) {
+        // バルク登録では同一URLが既登録である可能性が高いため、重複はエラーではなくwarnとして記録する
+        log.warn('processTrendingQiita', 'skip duplicate', { url });
+      } else {
+        log.error('processTrendingQiita', 'register failed', err, { url });
+      }
     }
   }
 
@@ -83,7 +86,12 @@ export function processTrendingZenn(): void {
       registerPendingUrl(url);
       registered++;
     } catch (err) {
-      log.error('processTrendingZenn', 'register failed', err, { url });
+      if (err instanceof DuplicateUrlError) {
+        // バルク登録では同一URLが既登録である可能性が高いため、重複はエラーではなくwarnとして記録する
+        log.warn('processTrendingZenn', 'skip duplicate', { url });
+      } else {
+        log.error('processTrendingZenn', 'register failed', err, { url });
+      }
     }
   }
 
@@ -135,18 +143,9 @@ export function processPendingArticles(): void {
   }
 }
 
-function registerPendingUrl(url: string): 'registered' | 'duplicate' {
+function registerPendingUrl(url: string): void {
   const { notionDbId, notionAccessToken } = getConfig();
   const normalizedUrl = stripQueryString(url);
-  try {
-    createPendingRecord(normalizedUrl, notionDbId, notionAccessToken);
-  } catch (err) {
-    if (err instanceof DuplicateUrlError) {
-      log.info('registerPendingUrl', 'skip duplicate', { url: normalizedUrl });
-      return 'duplicate';
-    }
-    throw err;
-  }
+  createPendingRecord(normalizedUrl, notionDbId, notionAccessToken);
   setHasPending();
-  return 'registered';
 }
