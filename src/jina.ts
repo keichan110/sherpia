@@ -1,5 +1,5 @@
 const MAX_RETRIES = 3;
-const INITIAL_BACKOFF_MS = 1000;
+const INITIAL_BACKOFF_MS = 5000;
 
 /**
  * Jina AI Reader経由で記事本文を全文取得する。
