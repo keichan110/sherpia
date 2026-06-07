@@ -61,7 +61,7 @@ describe('fetchArticleContent 429リトライ', () => {
 
     fetchArticleContent('https://example.com');
 
-    expect(Utilities.sleep).toHaveBeenCalledWith(1000);
+    expect(Utilities.sleep).toHaveBeenCalledWith(5000);
   });
 
   it('指数バックオフで待機時間が倍増する', () => {
@@ -69,9 +69,9 @@ describe('fetchArticleContent 429リトライ', () => {
 
     expect(() => fetchArticleContent('https://example.com')).toThrow();
 
-    expect(Utilities.sleep).toHaveBeenNthCalledWith(1, 1000);
-    expect(Utilities.sleep).toHaveBeenNthCalledWith(2, 2000);
-    expect(Utilities.sleep).toHaveBeenNthCalledWith(3, 4000);
+    expect(Utilities.sleep).toHaveBeenNthCalledWith(1, 5000);
+    expect(Utilities.sleep).toHaveBeenNthCalledWith(2, 10000);
+    expect(Utilities.sleep).toHaveBeenNthCalledWith(3, 20000);
   });
 
   it('429以外のエラーはリトライせず1回で終了する', () => {
