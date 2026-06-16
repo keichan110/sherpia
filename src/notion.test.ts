@@ -192,6 +192,87 @@ describe('updateRecord', () => {
     expect(payload.children[2].heading_3.rich_text[0].text.content).toBe('背景');
   });
 
+  it('section.bodyが2000文字を超える場合は複数のparagraphブロックに分割する', () => {
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, '{}') as never);
+    const longBody = '。'.repeat(2500);
+    const result: GeminiResult = {
+      ...mockGeminiResult,
+      summary: [{ heading: '長文セクション', body: longBody }],
+    };
+
+    updateRecord('page-1', result, '完了', 'notion-key');
+
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[1];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    const bodyBlocks = payload.children.filter((b: { type: string }) => b.type === 'paragraph');
+    // overview用1ブロック + 分割された長文セクションの複数ブロック
+    expect(bodyBlocks.length).toBeGreaterThan(2);
+    const totalLength = bodyBlocks
+      .slice(1)
+      .reduce(
+        (sum: number, b: { paragraph: { rich_text: { text: { content: string } }[] } }) =>
+          sum + b.paragraph.rich_text[0].text.content.length,
+        0
+      );
+    expect(totalLength).toBe(longBody.length);
+  });
+
+  it('分割された各ブロックのcontentは2000文字以下である', () => {
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, '{}') as never);
+    const longBody = '。'.repeat(2500);
+    const result: GeminiResult = {
+      ...mockGeminiResult,
+      summary: [{ heading: '長文セクション', body: longBody }],
+    };
+
+    updateRecord('page-1', result, '完了', 'notion-key');
+
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[1];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    const bodyBlocks = payload.children.filter((b: { type: string }) => b.type === 'paragraph');
+    for (const block of bodyBlocks) {
+      expect(block.paragraph.rich_text[0].text.content.length).toBeLessThanOrEqual(2000);
+    }
+  });
+
+  it('改行を境界として優先して分割する', () => {
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, '{}') as never);
+    const longBody = `${'a'.repeat(1990)}\n${'b'.repeat(500)}`;
+    const result: GeminiResult = {
+      ...mockGeminiResult,
+      summary: [{ heading: '長文セクション', body: longBody }],
+    };
+
+    updateRecord('page-1', result, '完了', 'notion-key');
+
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[1];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    const bodyBlocks = payload.children.filter((b: { type: string }) => b.type === 'paragraph');
+    const firstSectionBlock = bodyBlocks[1];
+    expect(firstSectionBlock.paragraph.rich_text[0].text.content).toBe(`${'a'.repeat(1990)}\n`);
+  });
+
+  it('overviewが2000文字を超える場合も複数ブロックへ分割する', () => {
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, '{}') as never);
+    const longOverview = '。'.repeat(2500);
+    const result: GeminiResult = { ...mockGeminiResult, overview: longOverview };
+
+    updateRecord('page-1', result, '完了', 'notion-key');
+
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[1];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    const headingIndex = payload.children.findIndex(
+      (b: { type: string }) => b.type === 'heading_2'
+    );
+    const overviewBlocks = payload.children
+      .slice(0, headingIndex)
+      .filter((b: { type: string }) => b.type === 'paragraph');
+    expect(overviewBlocks.length).toBeGreaterThan(1);
+    for (const block of overviewBlocks) {
+      expect(block.paragraph.rich_text[0].text.content.length).toBeLessThanOrEqual(2000);
+    }
+  });
+
   it('「エラー」時はステータスのみ更新する1回のfetchのみ', () => {
     vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, '{}') as never);
 
