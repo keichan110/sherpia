@@ -1,6 +1,7 @@
 import type { GeminiResult } from './gemini';
 
 const NOTION_API_BASE = 'https://api.notion.com/v1';
+const MAX_RICH_TEXT_LENGTH = 2000;
 
 export type NotionDbId = string;
 export type NotionConnectAccessToken = string;
@@ -117,11 +118,7 @@ export function updateRecord(
 
   if (status === '完了' && data) {
     const children = [
-      {
-        object: 'block',
-        type: 'paragraph',
-        paragraph: { rich_text: [{ type: 'text', text: { content: data.overview } }] },
-      },
+      ...splitTextToBlocks(data.overview),
       {
         object: 'block',
         type: 'heading_2',
@@ -133,11 +130,7 @@ export function updateRecord(
           type: 'heading_3',
           heading_3: { rich_text: [{ type: 'text', text: { content: section.heading } }] },
         },
-        {
-          object: 'block',
-          type: 'paragraph',
-          paragraph: { rich_text: [{ type: 'text', text: { content: section.body } }] },
-        },
+        ...splitTextToBlocks(section.body),
       ]),
     ];
 
@@ -204,4 +197,26 @@ function assertOk(response: GoogleAppsScript.URL_Fetch.HTTPResponse): void {
   if (response.getResponseCode() !== 200) {
     throw new Error(`Notion API error: ${response.getContentText()}`);
   }
+}
+
+function splitTextToBlocks(text: string, maxLen = MAX_RICH_TEXT_LENGTH): object[] {
+  const chunks: string[] = [];
+  let remaining = text;
+
+  while (remaining.length > maxLen) {
+    const newlineBoundary = remaining.lastIndexOf('\n', maxLen - 1);
+    const periodBoundary = remaining.lastIndexOf('。', maxLen - 1);
+    const boundary =
+      newlineBoundary > 0 ? newlineBoundary + 1 : periodBoundary > 0 ? periodBoundary + 1 : maxLen;
+
+    chunks.push(remaining.slice(0, boundary));
+    remaining = remaining.slice(boundary);
+  }
+  if (remaining) chunks.push(remaining);
+
+  return chunks.map((chunk) => ({
+    object: 'block',
+    type: 'paragraph',
+    paragraph: { rich_text: [{ type: 'text', text: { content: chunk } }] },
+  }));
 }
