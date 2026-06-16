@@ -64,6 +64,20 @@ describe('callGeminiAPI', () => {
     );
   });
 
+  it('プロンプトにセクション分割の指示が含まれる', () => {
+    const responseText = JSON.stringify({
+      candidates: [{ content: { parts: [{ text: JSON.stringify(validResult) }] } }],
+    });
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, responseText) as never);
+
+    callGeminiAPI('記事本文', 'gemini-2.5-flash', 'api-key');
+
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[0];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    const promptText = payload.contents[0].parts[0].text as string;
+    expect(promptText).toContain('分割');
+  });
+
   it('レスポンスJSONの中にJSONブロックが埋め込まれていても抽出できる', () => {
     const embeddedText = `以下の結果です：\n${JSON.stringify(validResult)}\n以上です。`;
     const responseText = JSON.stringify({
