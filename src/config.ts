@@ -22,7 +22,7 @@ export function getConfig(): Config {
     secretToken: scriptProperties.getProperty('SECRET_TOKEN') ?? '',
     geminiApiKey: scriptProperties.getProperty('GEMINI_API_KEY') ?? '',
     geminiModel: (scriptProperties.getProperty('GEMINI_MODEL') ??
-      'gemini-3.5-flash') as GeminiModel,
+      'gemini-3.1-flash-lite') as GeminiModel,
     notionAccessToken: scriptProperties.getProperty('NOTION_ACCESS_TOKEN') ?? '',
     notionDbId: scriptProperties.getProperty('NOTION_DB_ID') ?? '',
   };
