@@ -64,7 +64,7 @@ describe('callGeminiAPI', () => {
     );
   });
 
-  it('プロンプトにセクション分割の指示が含まれる', () => {
+  it('systemInstructionにセクション分割の指示が含まれる', () => {
     const responseText = JSON.stringify({
       candidates: [{ content: { parts: [{ text: JSON.stringify(validResult) }] } }],
     });
@@ -74,8 +74,22 @@ describe('callGeminiAPI', () => {
 
     const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[0];
     const payload = JSON.parse((options as { payload: string }).payload);
-    const promptText = payload.contents[0].parts[0].text as string;
-    expect(promptText).toContain('分割');
+    const instructionText = payload.systemInstruction.parts[0].text as string;
+    expect(instructionText).toContain('分割');
+  });
+
+  it('記事本文がcontentsに渡される', () => {
+    const responseText = JSON.stringify({
+      candidates: [{ content: { parts: [{ text: JSON.stringify(validResult) }] } }],
+    });
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, responseText) as never);
+
+    callGeminiAPI('テスト記事の本文', 'gemini-2.5-flash', 'api-key');
+
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[0];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    const contentText = payload.contents[0].parts[0].text as string;
+    expect(contentText).toContain('テスト記事の本文');
   });
 
   it('503エラー時にリトライして成功する', () => {
@@ -113,18 +127,14 @@ describe('callGeminiAPI', () => {
     expect(Utilities.sleep).toHaveBeenNthCalledWith(3, 4000);
   });
 
-  it('429エラー時にリトライして成功する', () => {
-    const responseText = JSON.stringify({
-      candidates: [{ content: { parts: [{ text: JSON.stringify(validResult) }] } }],
-    });
-    vi.mocked(UrlFetchApp.fetch)
-      .mockReturnValueOnce(mockResponse(429, '') as never)
-      .mockReturnValueOnce(mockResponse(200, responseText) as never);
+  it('429エラー時はリトライせず即座にエラーを投げる', () => {
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(429, '') as never);
 
-    const result = callGeminiAPI('記事本文', 'gemini-2.5-flash', 'api-key');
-
-    expect(result).toEqual(validResult);
-    expect(UrlFetchApp.fetch).toHaveBeenCalledTimes(2);
+    expect(() => callGeminiAPI('記事本文', 'gemini-2.5-flash', 'api-key')).toThrow(
+      'Gemini API error: HTTP 429'
+    );
+    expect(UrlFetchApp.fetch).toHaveBeenCalledTimes(1);
+    expect(Utilities.sleep).not.toHaveBeenCalled();
   });
 
   it('400エラー時はリトライせず即座にエラーを投げる', () => {
@@ -137,15 +147,44 @@ describe('callGeminiAPI', () => {
     expect(Utilities.sleep).not.toHaveBeenCalled();
   });
 
-  it('レスポンスJSONの中にJSONブロックが埋め込まれていても抽出できる', () => {
-    const embeddedText = `以下の結果です：\n${JSON.stringify(validResult)}\n以上です。`;
+  it('構造化出力(responseSchema)の設定がpayloadに含まれる', () => {
     const responseText = JSON.stringify({
-      candidates: [{ content: { parts: [{ text: embeddedText }] } }],
+      candidates: [{ content: { parts: [{ text: JSON.stringify(validResult) }] } }],
     });
     vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, responseText) as never);
 
-    const result = callGeminiAPI('記事本文', 'gemini-2.5-flash', 'api-key');
+    callGeminiAPI('記事本文', 'gemini-2.5-flash', 'api-key');
 
-    expect(result).toEqual(validResult);
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[0];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    expect(payload.generationConfig.responseMimeType).toBe('application/json');
+    expect(payload.generationConfig.responseSchema.type).toBe('OBJECT');
+    expect(payload.generationConfig.responseSchema.properties.category.enum).toContain('AI/ML');
+  });
+
+  it('Gemini 3系モデルではthinkingLevelをmediumに指定する', () => {
+    const responseText = JSON.stringify({
+      candidates: [{ content: { parts: [{ text: JSON.stringify(validResult) }] } }],
+    });
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, responseText) as never);
+
+    callGeminiAPI('記事本文', 'gemini-3.1-flash-lite', 'api-key');
+
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[0];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    expect(payload.generationConfig.thinkingConfig.thinkingLevel).toBe('medium');
+  });
+
+  it('Gemini 2.5系モデルではthinkingConfigを設定しない', () => {
+    const responseText = JSON.stringify({
+      candidates: [{ content: { parts: [{ text: JSON.stringify(validResult) }] } }],
+    });
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, responseText) as never);
+
+    callGeminiAPI('記事本文', 'gemini-2.5-flash', 'api-key');
+
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[0];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    expect(payload.generationConfig.thinkingConfig).toBeUndefined();
   });
 });
