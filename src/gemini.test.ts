@@ -161,4 +161,30 @@ describe('callGeminiAPI', () => {
     expect(payload.generationConfig.responseSchema.type).toBe('OBJECT');
     expect(payload.generationConfig.responseSchema.properties.category.enum).toContain('AI/ML');
   });
+
+  it('Gemini 3系モデルではthinkingLevelをmediumに指定する', () => {
+    const responseText = JSON.stringify({
+      candidates: [{ content: { parts: [{ text: JSON.stringify(validResult) }] } }],
+    });
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, responseText) as never);
+
+    callGeminiAPI('記事本文', 'gemini-3.1-flash-lite', 'api-key');
+
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[0];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    expect(payload.generationConfig.thinkingConfig.thinkingLevel).toBe('medium');
+  });
+
+  it('Gemini 2.5系モデルではthinkingConfigを設定しない', () => {
+    const responseText = JSON.stringify({
+      candidates: [{ content: { parts: [{ text: JSON.stringify(validResult) }] } }],
+    });
+    vi.mocked(UrlFetchApp.fetch).mockReturnValue(mockResponse(200, responseText) as never);
+
+    callGeminiAPI('記事本文', 'gemini-2.5-flash', 'api-key');
+
+    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[0];
+    const payload = JSON.parse((options as { payload: string }).payload);
+    expect(payload.generationConfig.thinkingConfig).toBeUndefined();
+  });
 });
