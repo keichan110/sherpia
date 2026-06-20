@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearHasPending, getConfig, hasPending, resetConfigCache, setHasPending } from './config';
+import { getConfig, resetConfigCache } from './config';
 
 describe('getConfig', () => {
   beforeEach(() => {
@@ -49,41 +49,5 @@ describe('getConfig', () => {
       notionAccessToken: '',
       notionDbId: '',
     });
-  });
-});
-
-describe('hasPending', () => {
-  it('HAS_PENDINGが"true"の場合はtrueを返す', () => {
-    vi.mocked(PropertiesService.getScriptProperties().getProperty).mockReturnValue('true');
-
-    expect(hasPending()).toBe(true);
-  });
-
-  it('HAS_PENDINGが未設定の場合はfalseを返す', () => {
-    vi.mocked(PropertiesService.getScriptProperties().getProperty).mockReturnValue(null);
-
-    expect(hasPending()).toBe(false);
-  });
-});
-
-describe('setHasPending', () => {
-  it('HAS_PENDINGに"true"をセットする', () => {
-    setHasPending();
-
-    expect(PropertiesService.getScriptProperties().setProperty).toHaveBeenCalledWith(
-      'HAS_PENDING',
-      'true'
-    );
-  });
-});
-
-describe('clearHasPending', () => {
-  it('HAS_PENDINGに"false"をセットする', () => {
-    clearHasPending();
-
-    expect(PropertiesService.getScriptProperties().setProperty).toHaveBeenCalledWith(
-      'HAS_PENDING',
-      'false'
-    );
   });
 });

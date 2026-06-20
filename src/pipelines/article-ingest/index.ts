@@ -1,15 +1,17 @@
 import { fetchArticleContent } from '../../capabilities/jina';
-import {
-  createPendingRecord,
-  DuplicateUrlError,
-  incrementRetryCount,
-  queryPendingRecord,
-  updateRecord,
-} from '../../capabilities/notion';
-import { clearHasPending, getConfig, hasPending, setHasPending } from '../../lib/config';
+import { getConfig } from '../../lib/config';
 import { log } from '../../lib/log';
 import { createResponse, stripQueryString } from '../../lib/utils';
 import { type GeminiResult, summarizeArticle } from './gemini';
+import {
+  clearPendingArticlesFlag,
+  DuplicateUrlError,
+  hasPendingArticles,
+  incrementRetryCount,
+  queryPendingRecord,
+  registerPendingRecord,
+  updateRecord,
+} from './pending';
 import { fetchQiitaTrendUrls, fetchZennTrendUrls } from './sources';
 
 const MAX_RETRY_COUNT = 5;
@@ -144,11 +146,11 @@ export function processTrendingZenn(): void {
 export function processPendingArticles(): void {
   const { geminiModel, geminiApiKey, notionDbId, notionAccessToken } = getConfig();
 
-  if (!hasPending()) return;
+  if (!hasPendingArticles()) return;
 
   const pending = queryPendingRecord(notionDbId, notionAccessToken);
   if (!pending) {
-    clearHasPending();
+    clearPendingArticlesFlag();
     return;
   }
 
@@ -188,13 +190,12 @@ export function processPendingArticles(): void {
 
   const next = queryPendingRecord(notionDbId, notionAccessToken);
   if (!next) {
-    clearHasPending();
+    clearPendingArticlesFlag();
   }
 }
 
 function registerPendingUrl(url: string): void {
   const { notionDbId, notionAccessToken } = getConfig();
   const normalizedUrl = stripQueryString(url);
-  createPendingRecord(normalizedUrl, notionDbId, notionAccessToken);
-  setHasPending();
+  registerPendingRecord(normalizedUrl, notionDbId, notionAccessToken);
 }

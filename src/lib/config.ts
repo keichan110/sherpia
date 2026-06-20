@@ -35,25 +35,3 @@ export function getConfig(): Config {
 export function resetConfigCache(): void {
   _configCache = null;
 }
-
-/**
- * 未処理記事フラグ（`HAS_PENDING`）が立っているか確認する。
- * @returns フラグが `"true"` のとき `true`、それ以外は `false`
- */
-export function hasPending(): boolean {
-  return PropertiesService.getScriptProperties().getProperty('HAS_PENDING') === 'true';
-}
-
-/**
- * 未処理記事フラグ（`HAS_PENDING`）を `"true"` にセットする。
- */
-export function setHasPending(): void {
-  PropertiesService.getScriptProperties().setProperty('HAS_PENDING', 'true');
-}
-
-/**
- * 未処理記事フラグ（`HAS_PENDING`）を削除する。
- */
-export function clearHasPending(): void {
-  PropertiesService.getScriptProperties().setProperty('HAS_PENDING', 'false');
-}
