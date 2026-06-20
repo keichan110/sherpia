@@ -9,7 +9,7 @@ vi.mock('./pipelines/article-ingest/sources');
 import { callGeminiAPI } from './capabilities/gemini';
 import { fetchArticleContent } from './capabilities/jina';
 import { doPost, processPendingArticles, processTrendingQiita, processTrendingZenn } from './index';
-import { getConfig } from './lib/config';
+import { getGeminiConfig, getNotionConfig, getSecretConfig } from './lib/config';
 import type { GeminiResult } from './pipelines/article-ingest/gemini';
 import {
   clearPendingArticlesFlag,
@@ -35,10 +35,14 @@ const mockEvent = (body: object): GoogleAppsScript.Events.DoPost =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getConfig).mockReturnValue({
+  vi.mocked(getSecretConfig).mockReturnValue({
     secretToken: 'valid-token',
+  });
+  vi.mocked(getGeminiConfig).mockReturnValue({
     geminiApiKey: 'gemini-key',
     geminiModel: 'gemini-2.5-flash',
+  });
+  vi.mocked(getNotionConfig).mockReturnValue({
     notionAccessToken: 'notion-key',
     notionDbId: 'db-id',
   });

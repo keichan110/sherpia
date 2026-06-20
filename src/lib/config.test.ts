@@ -1,22 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getConfig, resetConfigCache } from './config';
+import {
+  getConfig,
+  getGeminiConfig,
+  getNotionConfig,
+  getSecretConfig,
+  resetConfigCache,
+} from './config';
 
 describe('getConfig', () => {
   beforeEach(() => {
     resetConfigCache();
-    vi.mocked(PropertiesService.getScriptProperties().getProperty).mockReset();
+    vi.mocked(PropertiesService.getScriptProperties().getProperties).mockReset();
   });
 
-  it('各プロパティを取得して返す', () => {
-    vi.mocked(PropertiesService.getScriptProperties().getProperty).mockImplementation((key) => {
-      const props: Record<string, string> = {
-        SECRET_TOKEN: 'token123',
-        GEMINI_API_KEY: 'gemini-key',
-        GEMINI_MODEL: 'gemini-2.0-flash',
-        NOTION_ACCESS_TOKEN: 'notion-key',
-        NOTION_DB_ID: 'db-id',
-      };
-      return props[key] ?? null;
+  it('スクリプトプロパティを一括取得して返す', () => {
+    vi.mocked(PropertiesService.getScriptProperties().getProperties).mockReturnValue({
+      SECRET_TOKEN: 'token123',
+      GEMINI_API_KEY: 'gemini-key',
+      GEMINI_MODEL: 'gemini-2.0-flash',
+      NOTION_ACCESS_TOKEN: 'notion-key',
+      NOTION_DB_ID: 'db-id',
     });
 
     const config = getConfig();
@@ -28,17 +31,29 @@ describe('getConfig', () => {
       notionAccessToken: 'notion-key',
       notionDbId: 'db-id',
     });
+    expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
 
-  it('2回呼び出しても PropertiesService.getProperty は1回分しか呼ばない', () => {
-    getConfig();
-    getConfig();
+  it('複数回呼び出しても PropertiesService.getProperties は1回しか呼ばない', () => {
+    vi.mocked(PropertiesService.getScriptProperties().getProperties).mockReturnValue({
+      SECRET_TOKEN: 'token123',
+      GEMINI_API_KEY: 'gemini-key',
+      GEMINI_MODEL: 'gemini-2.0-flash',
+      NOTION_ACCESS_TOKEN: 'notion-key',
+      NOTION_DB_ID: 'db-id',
+    });
 
-    expect(PropertiesService.getScriptProperties().getProperty).toHaveBeenCalledTimes(5);
+    getConfig();
+    getConfig();
+    getSecretConfig();
+    getGeminiConfig();
+    getNotionConfig();
+
+    expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
 
-  it('プロパティがnullの場合はデフォルト値を使う', () => {
-    vi.mocked(PropertiesService.getScriptProperties().getProperty).mockReturnValue(null);
+  it('プロパティがない場合はデフォルト値を使う', () => {
+    vi.mocked(PropertiesService.getScriptProperties().getProperties).mockReturnValue({});
 
     const config = getConfig();
 
@@ -49,5 +64,28 @@ describe('getConfig', () => {
       notionAccessToken: '',
       notionDbId: '',
     });
+  });
+
+  it('スコープ別ゲッターはキャッシュ済みスナップショットのスライスを返す', () => {
+    vi.mocked(PropertiesService.getScriptProperties().getProperties).mockReturnValue({
+      SECRET_TOKEN: 'token123',
+      GEMINI_API_KEY: 'gemini-key',
+      GEMINI_MODEL: 'gemini-2.0-flash',
+      NOTION_ACCESS_TOKEN: 'notion-key',
+      NOTION_DB_ID: 'db-id',
+    });
+
+    expect(getSecretConfig()).toEqual({
+      secretToken: 'token123',
+    });
+    expect(getGeminiConfig()).toEqual({
+      geminiApiKey: 'gemini-key',
+      geminiModel: 'gemini-2.0-flash',
+    });
+    expect(getNotionConfig()).toEqual({
+      notionAccessToken: 'notion-key',
+      notionDbId: 'db-id',
+    });
+    expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
 });

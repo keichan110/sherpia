@@ -1,5 +1,5 @@
 import { fetchArticleContent } from '../../capabilities/jina';
-import { getConfig } from '../../lib/config';
+import { getGeminiConfig, getNotionConfig, getSecretConfig } from '../../lib/config';
 import { log } from '../../lib/log';
 import { createResponse, stripQueryString } from '../../lib/utils';
 import { type GeminiResult, summarizeArticle } from './gemini';
@@ -24,7 +24,7 @@ const MAX_RETRY_COUNT = 5;
 export function acceptUrlPost(
   e: GoogleAppsScript.Events.DoPost
 ): GoogleAppsScript.Content.TextOutput {
-  const { secretToken } = getConfig();
+  const { secretToken } = getSecretConfig();
 
   let body: { token?: string; url?: string };
   try {
@@ -144,7 +144,8 @@ export function processTrendingZenn(): void {
  * 処理失敗時はリトライ回数の更新を行った上で例外を投げ、GAS実行を「失敗」にして異常を検知できるようにする。
  */
 export function processPendingArticles(): void {
-  const { geminiModel, geminiApiKey, notionDbId, notionAccessToken } = getConfig();
+  const { geminiModel, geminiApiKey } = getGeminiConfig();
+  const { notionDbId, notionAccessToken } = getNotionConfig();
 
   if (!hasPendingArticles()) return;
 
@@ -195,7 +196,7 @@ export function processPendingArticles(): void {
 }
 
 function registerPendingUrl(url: string): void {
-  const { notionDbId, notionAccessToken } = getConfig();
+  const { notionDbId, notionAccessToken } = getNotionConfig();
   const normalizedUrl = stripQueryString(url);
   registerPendingRecord(normalizedUrl, notionDbId, notionAccessToken);
 }

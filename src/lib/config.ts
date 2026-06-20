@@ -9,29 +9,77 @@ export type Config = {
   notionDbId: NotionDbId;
 };
 
-let _configCache: Config | null = null;
+export type SecretConfig = Pick<Config, 'secretToken'>;
+export type GeminiConfig = Pick<Config, 'geminiApiKey' | 'geminiModel'>;
+export type NotionConfig = Pick<Config, 'notionAccessToken' | 'notionDbId'>;
+
+type ConfigSnapshot = Record<string, string>;
+
+let _configSnapshotCache: ConfigSnapshot | null = null;
 
 /**
- * GASスクリプトプロパティから設定値を読み込んで返す。1実行内でキャッシュされる。
+ * GASスクリプトプロパティのスナップショットを一括取得し、1実行内で再利用する。
+ * @returns キャッシュ済み、または新規取得したスクリプトプロパティ
+ */
+function getConfigSnapshot(): ConfigSnapshot {
+  if (_configSnapshotCache) return _configSnapshotCache;
+  _configSnapshotCache = PropertiesService.getScriptProperties().getProperties();
+  return _configSnapshotCache;
+}
+
+/**
+ * スクリプトプロパティのスナップショットをアプリケーション設定へ変換する。
+ * @param snapshot スクリプトプロパティの一括取得結果
+ * @returns デフォルト値を補完したアプリケーション設定
+ */
+function buildConfig(snapshot: ConfigSnapshot): Config {
+  return {
+    secretToken: snapshot.SECRET_TOKEN ?? '',
+    geminiApiKey: snapshot.GEMINI_API_KEY ?? '',
+    geminiModel: (snapshot.GEMINI_MODEL ?? 'gemini-3.1-flash-lite') as GeminiModel,
+    notionAccessToken: snapshot.NOTION_ACCESS_TOKEN ?? '',
+    notionDbId: snapshot.NOTION_DB_ID ?? '',
+  };
+}
+
+/**
+ * GASスクリプトプロパティから全設定値を読み込んで返す。1実行内で一括取得結果がキャッシュされる。
  * @returns アプリケーション設定オブジェクト
  */
 export function getConfig(): Config {
-  if (_configCache) return _configCache;
-  const scriptProperties = PropertiesService.getScriptProperties();
-  _configCache = {
-    secretToken: scriptProperties.getProperty('SECRET_TOKEN') ?? '',
-    geminiApiKey: scriptProperties.getProperty('GEMINI_API_KEY') ?? '',
-    geminiModel: (scriptProperties.getProperty('GEMINI_MODEL') ??
-      'gemini-3.1-flash-lite') as GeminiModel,
-    notionAccessToken: scriptProperties.getProperty('NOTION_ACCESS_TOKEN') ?? '',
-    notionDbId: scriptProperties.getProperty('NOTION_DB_ID') ?? '',
-  };
-  return _configCache;
+  return buildConfig(getConfigSnapshot());
+}
+
+/**
+ * 認証用Secret設定をキャッシュ済みスクリプトプロパティから取得する。
+ * @returns 認証用Secret設定
+ */
+export function getSecretConfig(): SecretConfig {
+  const { secretToken } = buildConfig(getConfigSnapshot());
+  return { secretToken };
+}
+
+/**
+ * Gemini設定をキャッシュ済みスクリプトプロパティから取得する。
+ * @returns Gemini APIキーとモデル名
+ */
+export function getGeminiConfig(): GeminiConfig {
+  const { geminiApiKey, geminiModel } = buildConfig(getConfigSnapshot());
+  return { geminiApiKey, geminiModel };
+}
+
+/**
+ * Notion設定をキャッシュ済みスクリプトプロパティから取得する。
+ * @returns Notion APIアクセストークンとデータベースID
+ */
+export function getNotionConfig(): NotionConfig {
+  const { notionAccessToken, notionDbId } = buildConfig(getConfigSnapshot());
+  return { notionAccessToken, notionDbId };
 }
 
 /**
  * 設定キャッシュをクリアする。テスト用。
  */
 export function resetConfigCache(): void {
-  _configCache = null;
+  _configSnapshotCache = null;
 }
