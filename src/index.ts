@@ -1,5 +1,5 @@
-import { callGeminiAPI, type GeminiResult } from './gemini';
-import { fetchArticleContent } from './jina';
+import { callGeminiAPI, type GeminiResult } from './capabilities/gemini';
+import { fetchArticleContent } from './capabilities/jina';
 import { clearHasPending, getConfig, hasPending, setHasPending } from './lib/config';
 import { log } from './lib/log';
 import { createResponse, stripQueryString } from './lib/utils';
@@ -9,7 +9,7 @@ import {
   incrementRetryCount,
   queryPendingRecord,
   updateRecord,
-} from './notion';
+} from './capabilities/notion';
 import { fetchQiitaTrendUrls, fetchZennTrendUrls } from './trend';
 
 const MAX_RETRY_COUNT = 5;

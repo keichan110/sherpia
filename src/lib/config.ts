@@ -1,5 +1,5 @@
-import type { GeminiApiKey, GeminiModel } from '../gemini';
-import type { NotionConnectAccessToken, NotionDbId } from '../notion';
+import type { GeminiApiKey, GeminiModel } from '../capabilities/gemini';
+import type { NotionConnectAccessToken, NotionDbId } from '../capabilities/notion';
 
 export type Config = {
   secretToken: string;

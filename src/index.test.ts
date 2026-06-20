@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('./lib/config');
-vi.mock('./gemini');
-vi.mock('./jina');
-vi.mock('./notion');
+vi.mock('./capabilities/gemini');
+vi.mock('./capabilities/jina');
+vi.mock('./capabilities/notion');
 vi.mock('./trend');
 
-import type { GeminiResult } from './gemini';
-import { callGeminiAPI } from './gemini';
+import type { GeminiResult } from './capabilities/gemini';
+import { callGeminiAPI } from './capabilities/gemini';
 import { doPost, processPendingArticles, processTrendingQiita, processTrendingZenn } from './index';
-import { fetchArticleContent } from './jina';
+import { fetchArticleContent } from './capabilities/jina';
 import { clearHasPending, getConfig, hasPending, setHasPending } from './lib/config';
 import {
   createPendingRecord,
@@ -17,7 +17,7 @@ import {
   incrementRetryCount,
   queryPendingRecord,
   updateRecord,
-} from './notion';
+} from './capabilities/notion';
 import { fetchQiitaTrendUrls, fetchZennTrendUrls } from './trend';
 
 const mockGeminiResult: GeminiResult = {
