@@ -1,0 +1,48 @@
+{
+  "skill_name": "writing-pr-description",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "現在のブランチに紐づいているPRのdescriptionを書いてください。後でレビュアーや自分が振り返れるように、何を・なぜ変えたかが分かる本文にしたいです。作業ディレクトリは /Users/ittooco/src/github.com/keichan110/notion-knowledge-feeder です。",
+      "expected_output": "現在のブランチのPRを特定し、`.github/PULL_REQUEST_TEMPLATE.md` の構成（概要 / 変更内容 / 補足）に沿った日本語のdescriptionを生成して gh pr edit でPR本文を更新する。概要に目的・背景、変更内容にファイル/領域単位の箇条書きが含まれる。",
+      "files": [],
+      "assertions": [
+        "PR番号またはタイトルが出力に含まれている",
+        "生成された本文に「## 概要」セクションが含まれている",
+        "生成された本文に「## 変更内容」セクションが含まれている",
+        "「## 変更内容」が箇条書き（- または・）になっている",
+        "日本語で出力されている",
+        "テンプレートの記入ガイドコメント（<!-- ... -->）が本文に残っていない",
+        "gh pr edit コマンドを使ってPR本文を更新している"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "このPR https://github.com/keichan110/notion-knowledge-feeder/pull/57 のdescriptionを、テンプレートに沿って書き直してほしいです。",
+      "expected_output": "PR URLから PR #57 を特定し、`.github/PULL_REQUEST_TEMPLATE.md` の構成に沿ったdescriptionを生成する。規約を定めるPRなので、PR固有の見出し（規約の要点など）が追加されていてもよい。gh pr edit で更新する。",
+      "files": [],
+      "assertions": [
+        "PR URLから正しくPRを特定している（PR #57）",
+        "生成された本文に「## 概要」セクションが含まれている",
+        "生成された本文に「## 変更内容」セクションが含まれている",
+        "概要に目的・背景が日本語で説明されている",
+        "テンプレートの記入ガイドコメント（<!-- ... -->）が本文に残っていない",
+        "gh pr edit コマンドを使ってPR本文を更新している"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "PR #1 のdescriptionを書きたい。テンプレートに沿って本文を作って。リポジトリは keichan110/notion-knowledge-feeder です。",
+      "expected_output": "PR番号からPRを特定し、テンプレート構成に沿ったdescriptionを生成する。些細な変更は省略され、変更内容は3〜7項目程度の箇条書きにまとまっている。補足に書くことが無ければ空の見出しを残さない。gh pr edit で更新する。",
+      "files": [],
+      "assertions": [
+        "PR番号またはタイトルが出力に含まれている",
+        "生成された本文に「## 概要」セクションが含まれている",
+        "生成された本文に「## 変更内容」セクションが含まれている",
+        "「## 変更内容」の些細な変更（インデント修正など）が単独の箇条書き項目になっていない",
+        "空の「## 補足」見出しだけが内容なしで残っていない",
+        "gh pr edit コマンドを使ってPR本文を更新している"
+      ]
+    }
+  ]
+}
