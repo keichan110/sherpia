@@ -16,6 +16,7 @@ vi.stubGlobal('UrlFetchApp', {
 vi.stubGlobal('PropertiesService', {
   getScriptProperties: vi.fn().mockReturnValue({
     getProperty: vi.fn().mockReturnValue(null),
+    getProperties: vi.fn().mockReturnValue({}),
     setProperty: vi.fn(),
     deleteProperty: vi.fn(),
   }),

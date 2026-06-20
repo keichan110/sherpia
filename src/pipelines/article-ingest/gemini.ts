@@ -1,11 +1,11 @@
-const MAX_RETRIES = 3;
-const INITIAL_BACKOFF_MS = 1000;
-const RETRYABLE_STATUSES = [503];
+import {
+  callGeminiAPI,
+  type GeminiApiKey,
+  type GeminiModel,
+  type GeminiResponseSchema,
+} from '../../capabilities/gemini';
 
-// Gemini 3 系の thinking レベル。要約精度を優先し medium を指定する（コストはリクエスト数依存のため影響しない）。
-const THINKING_LEVEL = 'medium';
-
-const CATEGORIES = [
+export const CATEGORIES = [
   'AI/ML',
   '開発',
   'インフラ',
@@ -45,7 +45,7 @@ ${articleText}
 
 // Gemini の構造化出力（responseSchema）。GeminiResult の形状を API レベルで保証する。
 // type は REST API 仕様に従い大文字表記を使う。
-const RESPONSE_SCHEMA = {
+const RESPONSE_SCHEMA: GeminiResponseSchema = {
   type: 'OBJECT',
   properties: {
     title: { type: 'STRING' },
@@ -72,15 +72,6 @@ const RESPONSE_SCHEMA = {
   propertyOrdering: ['title', 'overview', 'summary', 'category', 'tags'],
 };
 
-export type GeminiModel =
-  | 'gemini-3.5-flash'
-  | 'gemini-3.1-pro-preview'
-  | 'gemini-3.1-flash-lite'
-  | 'gemini-2.5-flash'
-  | 'gemini-2.5-flash-lite'
-  | 'gemini-2.5-pro';
-export type GeminiApiKey = string;
-
 export type SummarySection = {
   heading: string;
   body: string;
@@ -95,77 +86,85 @@ export type GeminiResult = {
 };
 
 /**
- * Gemini APIに記事本文を送信し、要約・構造化した結果を返す。
- * 503エラーは指数バックオフで最大3回リトライする。429エラーはリトライせず即座にエラーを投げる。
- * @param articleText 要約対象の記事本文
- * @param geminiModel 使用するGeminiモデル名
- * @param geminiApiKey Gemini APIキー
- * @returns 要約・構造化された `GeminiResult`
- * @throws Gemini APIが有効なJSONを返さない場合、またはリトライ上限を超えた場合
+ * 記事本文をGeminiで要約し、article-ingest用の構造化結果として返す。
+ *
+ * @param articleText - 要約対象の記事本文。
+ * @param geminiModel - 使用するGeminiモデル名。
+ * @param geminiApiKey - Gemini APIキー。
+ * @returns 記事要約の構造化結果。
+ * @throws Geminiの応答が `GeminiResult` として有効なJSONではない場合。
  */
-export function callGeminiAPI(
+export function summarizeArticle(
   articleText: string,
   geminiModel: GeminiModel,
   geminiApiKey: GeminiApiKey
 ): GeminiResult {
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`;
-
-  const generationConfig: Record<string, unknown> = {
-    // Gemini 3 系は temperature 1.0（デフォルト）が推奨。下げるとループや性能劣化を招きうる。
-    // 忠実性・憶測抑制は temperature ではなく systemInstruction・responseSchema・thinkingLevel で担保する。
-    temperature: 1.0,
-    responseMimeType: 'application/json',
+  const text = callGeminiAPI({
+    geminiModel,
+    geminiApiKey,
+    systemInstruction: SYSTEM_INSTRUCTION,
+    userContent: articleContent(articleText),
     responseSchema: RESPONSE_SCHEMA,
-  };
-  // thinkingLevel は Gemini 3 系専用。2.5 系は thinkingBudget 方式で非対応のため設定しない。
-  if (geminiModel.startsWith('gemini-3')) {
-    generationConfig.thinkingConfig = { thinkingLevel: THINKING_LEVEL };
+  });
+
+  try {
+    return parseGeminiResult(text);
+  } catch {
+    throw new Error('Gemini returned invalid JSON');
   }
+}
 
-  const payload = {
-    systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-    contents: [{ parts: [{ text: articleContent(articleText) }] }],
-    generationConfig,
-  };
-
-  const options = {
-    method: 'post' as const,
-    contentType: 'application/json',
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true,
-  };
-
-  let backoffMs = INITIAL_BACKOFF_MS;
-
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const response = UrlFetchApp.fetch(endpoint, options);
-    const status = response.getResponseCode();
-
-    if (status === 200) {
-      const result = JSON.parse(response.getContentText()) as {
-        candidates?: { content?: { parts?: { text?: string }[] } }[];
-      };
-      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) {
-        throw new Error('Gemini returned invalid JSON');
-      }
-
-      // responseSchema により JSON のみが返るため、そのままパースする。
-      try {
-        return JSON.parse(text) as GeminiResult;
-      } catch {
-        throw new Error('Gemini returned invalid JSON');
-      }
-    }
-
-    if (RETRYABLE_STATUSES.includes(status) && attempt < MAX_RETRIES) {
-      Utilities.sleep(backoffMs);
-      backoffMs *= 2;
-      continue;
-    }
-
-    throw new Error(`Gemini API error: HTTP ${status}`);
+/**
+ * Geminiの応答テキストを `GeminiResult` としてパースし、必須フィールドを検証する。
+ *
+ * @param text - Gemini APIから返された応答テキスト。
+ * @returns 検証済みの `GeminiResult`。
+ * @throws 応答テキストがJSONとして不正、または `GeminiResult` の形状を満たさない場合。
+ */
+export function parseGeminiResult(text: string): GeminiResult {
+  const value: unknown = JSON.parse(text);
+  if (!isGeminiResult(value)) {
+    throw new Error('Gemini returned invalid JSON');
   }
+  return value;
+}
 
-  throw new Error('Gemini API error: max retries exceeded');
+/**
+ * 値が `GeminiResult` の形状を満たすかどうかを判定する。
+ *
+ * @param value - 判定対象の値。
+ * @returns `GeminiResult` の形状を満たす場合は `true`。
+ */
+function isGeminiResult(value: unknown): value is GeminiResult {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.title === 'string' &&
+    typeof value.overview === 'string' &&
+    Array.isArray(value.summary) &&
+    value.summary.every(isSummarySection) &&
+    typeof value.category === 'string' &&
+    CATEGORIES.includes(value.category as (typeof CATEGORIES)[number]) &&
+    Array.isArray(value.tags) &&
+    value.tags.every((tag) => typeof tag === 'string')
+  );
+}
+
+/**
+ * 値が `SummarySection` の形状を満たすかどうかを判定する。
+ *
+ * @param value - 判定対象の値。
+ * @returns `SummarySection` の形状を満たす場合は `true`。
+ */
+function isSummarySection(value: unknown): value is SummarySection {
+  return isRecord(value) && typeof value.heading === 'string' && typeof value.body === 'string';
+}
+
+/**
+ * 値が配列ではないオブジェクトかどうかを判定する。
+ *
+ * @param value - 判定対象の値。
+ * @returns 配列ではないオブジェクトの場合は `true`。
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
