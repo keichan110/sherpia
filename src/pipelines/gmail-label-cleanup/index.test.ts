@@ -1,12 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { resetConfigCache } from '../../lib/config';
 import { runLabelCleanup } from '.';
 
 beforeEach(() => {
-  resetConfigCache();
-  vi.mocked(PropertiesService.getScriptProperties().getProperties).mockReturnValue({
-    GMAIL_CLEANUP_LABELS: 'action',
-  });
   vi.mocked(GmailApp.search).mockReset().mockReturnValue([]);
   vi.mocked(GmailApp.getUserLabelByName)
     .mockReset()
@@ -16,18 +11,23 @@ beforeEach(() => {
 describe('runLabelCleanup', () => {
   it('アーカイブ済みスレッドだけラベルを外す', () => {
     const thread = createThread(false);
-    vi.mocked(GmailApp.search).mockReturnValue([thread]);
+    vi.mocked(GmailApp.search)
+      .mockReturnValueOnce([thread]) // action
+      .mockReturnValueOnce([]); // pending
 
     runLabelCleanup();
 
     expect(GmailApp.search).toHaveBeenCalledWith('label:action -in:inbox');
+    expect(GmailApp.search).toHaveBeenCalledWith('label:pending -in:inbox');
     expect(thread.removeLabel).toHaveBeenCalledTimes(1);
   });
 
   it('受信トレイ内スレッドは防御的にスキップする', () => {
     const archivedThread = createThread(false);
     const inboxThread = createThread(true);
-    vi.mocked(GmailApp.search).mockReturnValue([archivedThread, inboxThread]);
+    vi.mocked(GmailApp.search)
+      .mockReturnValueOnce([archivedThread, inboxThread]) // action
+      .mockReturnValueOnce([]); // pending
 
     runLabelCleanup();
 
@@ -39,6 +39,7 @@ describe('runLabelCleanup', () => {
     runLabelCleanup();
 
     expect(GmailApp.search).toHaveBeenCalledWith('label:action -in:inbox');
+    expect(GmailApp.search).toHaveBeenCalledWith('label:pending -in:inbox');
     expect(GmailApp.getUserLabelByName).not.toHaveBeenCalled();
   });
 });

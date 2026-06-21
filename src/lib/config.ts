@@ -7,13 +7,11 @@ export type Config = {
   geminiModel: GeminiModel;
   notionAccessToken: NotionConnectAccessToken;
   notionDbId: NotionDbId;
-  gmailCleanupLabels: string[];
 };
 
 export type SecretConfig = Pick<Config, 'secretToken'>;
 export type GeminiConfig = Pick<Config, 'geminiApiKey' | 'geminiModel'>;
 export type NotionConfig = Pick<Config, 'notionAccessToken' | 'notionDbId'>;
-export type GmailCleanupConfig = Pick<Config, 'gmailCleanupLabels'>;
 
 type ConfigSnapshot = Record<string, string>;
 
@@ -41,10 +39,6 @@ function buildConfig(snapshot: ConfigSnapshot): Config {
     geminiModel: (snapshot.GEMINI_MODEL ?? 'gemini-3.1-flash-lite') as GeminiModel,
     notionAccessToken: snapshot.NOTION_ACCESS_TOKEN ?? '',
     notionDbId: snapshot.NOTION_DB_ID ?? '',
-    gmailCleanupLabels: (snapshot.GMAIL_CLEANUP_LABELS ?? 'action,pending')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
   };
 }
 
@@ -81,15 +75,6 @@ export function getGeminiConfig(): GeminiConfig {
 export function getNotionConfig(): NotionConfig {
   const { notionAccessToken, notionDbId } = buildConfig(getConfigSnapshot());
   return { notionAccessToken, notionDbId };
-}
-
-/**
- * Gmailラベル整理設定をキャッシュ済みスクリプトプロパティから取得する。
- * @returns Gmailラベル整理対象のラベル名配列
- */
-export function getGmailCleanupConfig(): GmailCleanupConfig {
-  const { gmailCleanupLabels } = buildConfig(getConfigSnapshot());
-  return { gmailCleanupLabels };
 }
 
 /**
