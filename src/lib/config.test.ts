@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getConfig,
   getGeminiConfig,
+  getGmailDigestConfig,
   getNotionConfig,
   getSecretConfig,
   resetConfigCache,
@@ -20,6 +21,9 @@ describe('getConfig', () => {
       GEMINI_MODEL: 'gemini-2.0-flash',
       NOTION_ACCESS_TOKEN: 'notion-key',
       NOTION_DB_ID: 'db-id',
+      SLACK_BOT_TOKEN: 'xoxb-test',
+      SLACK_CHANNEL_ID: 'C123456',
+      GMAIL_DIGEST_LABEL: 'Newsletter',
     });
 
     const config = getConfig();
@@ -30,6 +34,9 @@ describe('getConfig', () => {
       geminiModel: 'gemini-2.0-flash',
       notionAccessToken: 'notion-key',
       notionDbId: 'db-id',
+      slackBotToken: 'xoxb-test',
+      slackChannelId: 'C123456',
+      gmailDigestLabel: 'Newsletter',
     });
     expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
@@ -41,6 +48,9 @@ describe('getConfig', () => {
       GEMINI_MODEL: 'gemini-2.0-flash',
       NOTION_ACCESS_TOKEN: 'notion-key',
       NOTION_DB_ID: 'db-id',
+      SLACK_BOT_TOKEN: 'xoxb-test',
+      SLACK_CHANNEL_ID: 'C123456',
+      GMAIL_DIGEST_LABEL: 'Newsletter',
     });
 
     getConfig();
@@ -48,6 +58,7 @@ describe('getConfig', () => {
     getSecretConfig();
     getGeminiConfig();
     getNotionConfig();
+    getGmailDigestConfig();
 
     expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
@@ -63,6 +74,9 @@ describe('getConfig', () => {
       geminiModel: 'gemini-3.1-flash-lite',
       notionAccessToken: '',
       notionDbId: '',
+      slackBotToken: '',
+      slackChannelId: '',
+      gmailDigestLabel: 'Newsletter',
     });
   });
 
@@ -73,6 +87,9 @@ describe('getConfig', () => {
       GEMINI_MODEL: 'gemini-2.0-flash',
       NOTION_ACCESS_TOKEN: 'notion-key',
       NOTION_DB_ID: 'db-id',
+      SLACK_BOT_TOKEN: 'xoxb-test',
+      SLACK_CHANNEL_ID: 'C123456',
+      GMAIL_DIGEST_LABEL: 'Newsletter',
     });
 
     expect(getSecretConfig()).toEqual({
@@ -85,6 +102,11 @@ describe('getConfig', () => {
     expect(getNotionConfig()).toEqual({
       notionAccessToken: 'notion-key',
       notionDbId: 'db-id',
+    });
+    expect(getGmailDigestConfig()).toEqual({
+      slackBotToken: 'xoxb-test',
+      slackChannelId: 'C123456',
+      gmailDigestLabel: 'Newsletter',
     });
     expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
