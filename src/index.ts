@@ -4,6 +4,7 @@ import {
   processTrendingQiita as runArticleIngestTrendingQiita,
   processTrendingZenn as runArticleIngestTrendingZenn,
 } from './pipelines/article-ingest';
+import { runLabelCleanup as runGmailLabelCleanupPipeline } from './pipelines/gmail-label-cleanup';
 
 /**
  * iOSショートカットからのPOSTリクエストをarticle-ingest Pipelineへ渡す。
@@ -36,4 +37,12 @@ export function processTrendingZenn(): void {
  */
 export function processPendingArticles(): void {
   runArticleIngestPendingArticles();
+}
+
+/**
+ * アーカイブ済みメールの運用ラベル整理をgmail-label-cleanup Pipelineで実行する。
+ * GASタイムトリガー（日次）から呼び出される。
+ */
+export function runGmailLabelCleanup(): void {
+  runGmailLabelCleanupPipeline();
 }

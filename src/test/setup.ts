@@ -44,3 +44,8 @@ vi.stubGlobal('XmlService', {
   parse: vi.fn(),
   getNamespace: vi.fn().mockReturnValue({}),
 });
+
+vi.stubGlobal('GmailApp', {
+  search: vi.fn().mockReturnValue([]),
+  getUserLabelByName: vi.fn().mockReturnValue(null),
+});
