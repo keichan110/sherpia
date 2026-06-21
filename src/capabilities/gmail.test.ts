@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { removeLabelFromThread, searchThreads } from './gmail';
+import { getMessagePlainBody, removeLabelFromThread, searchThreads } from './gmail';
 
 beforeEach(() => {
   vi.mocked(GmailApp.search).mockReset().mockReturnValue([]);
@@ -43,5 +43,21 @@ describe('removeLabelFromThread', () => {
     removeLabelFromThread(thread, 'action');
 
     expect(thread.removeLabel).not.toHaveBeenCalled();
+  });
+});
+
+describe('getMessagePlainBody', () => {
+  it('GmailMessage.getPlainBody の戻り値をそのまま返す', () => {
+    const message = {
+      getPlainBody: vi.fn().mockReturnValue('本文テキスト'),
+    } as unknown as GoogleAppsScript.Gmail.GmailMessage;
+    expect(getMessagePlainBody(message)).toBe('本文テキスト');
+  });
+
+  it('getPlainBody が空文字列を返す場合は空文字列を返す', () => {
+    const message = {
+      getPlainBody: vi.fn().mockReturnValue(''),
+    } as unknown as GoogleAppsScript.Gmail.GmailMessage;
+    expect(getMessagePlainBody(message)).toBe('');
   });
 });

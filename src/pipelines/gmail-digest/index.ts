@@ -1,4 +1,4 @@
-import { searchThreads } from '../../capabilities/gmail';
+import { getMessagePlainBody, searchThreads } from '../../capabilities/gmail';
 import { postMessage } from '../../capabilities/slack';
 import { getGmailDigestConfig } from '../../lib/config';
 import { log } from '../../lib/log';
@@ -20,6 +20,18 @@ export function getYesterdayWindow(now: Date): YesterdayWindow {
   );
   const yesterdayJst = new Date(todayJst.getTime() - 24 * 60 * 60 * 1000);
   return { after: fmtDate(yesterdayJst), before: fmtDate(todayJst) };
+}
+
+/**
+ * 本文テキストのホワイトスペースを正規化し、指定文字数でトリムする。
+ * @param body プレーンテキストの本文
+ * @param maxLen トリムする最大文字数（デフォルト: 200）
+ * @returns 正規化・トリム済みの本文冒頭
+ */
+export function truncateBody(body: string, maxLen = 200): string {
+  const normalized = body.replace(/\s+/g, ' ').trim();
+  if (normalized.length <= maxLen) return normalized;
+  return `${normalized.slice(0, maxLen)}…`;
 }
 
 /**
@@ -68,7 +80,8 @@ function buildSlackText(threads: GoogleAppsScript.Gmail.GmailThread[]): string {
   if (threads.length === 0) return '本日のNewsletterはありません';
   const items = threads.map((thread) => {
     const msg = thread.getMessages()[0];
-    return `• *${msg.getSubject()}*\n  ${msg.getFrom()}`;
+    const body = truncateBody(getMessagePlainBody(msg));
+    return `• *${msg.getSubject()}*\n  ${msg.getFrom()}\n  ${body}`;
   });
   return `昨日のNewsletter (${threads.length}件)\n\n${items.join('\n\n')}`;
 }
