@@ -17,6 +17,15 @@ export function getMessagePlainBody(message: GoogleAppsScript.Gmail.GmailMessage
 }
 
 /**
+ * Gmailスレッドのパーマリンクを取得する。
+ * @param thread パーマリンク取得対象のGmailスレッド
+ * @returns Gmailスレッドのパーマリンク
+ */
+export function getThreadPermalink(thread: GoogleAppsScript.Gmail.GmailThread): string {
+  return thread.getPermalink();
+}
+
+/**
  * Gmailスレッドから指定ラベルを外す。
  * @param thread ラベル削除対象のGmailスレッド
  * @param labelName 削除するユーザーラベル名

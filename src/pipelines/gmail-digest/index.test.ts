@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetConfigCache } from '../../lib/config';
-import { getYesterdayWindow, runGmailDigest, truncateBody } from '.';
+import { getYesterdayWindow, parseFrom, runGmailDigest, truncateBody } from '.';
 
 const mockResponse = (body: object) => ({
   getContentText: vi.fn().mockReturnValue(JSON.stringify(body)),
@@ -15,7 +15,7 @@ beforeEach(() => {
   });
   vi.mocked(UrlFetchApp.fetch)
     .mockReset()
-    .mockReturnValue(mockResponse({ ok: true }) as never);
+    .mockReturnValue(mockResponse({ ok: true, ts: '123.456' }) as never);
   vi.mocked(GmailApp.search).mockReset().mockReturnValue([]);
 });
 
@@ -61,11 +61,34 @@ describe('truncateBody', () => {
   });
 });
 
+describe('parseFrom', () => {
+  it('表示名とメールアドレスを分離する', () => {
+    expect(parseFrom('Sender Name <sender@example.com>')).toEqual({
+      name: 'Sender Name',
+      email: 'sender@example.com',
+    });
+  });
+
+  it('山括弧がない場合は全体をメールアドレスとして返す', () => {
+    expect(parseFrom('sender@example.com')).toEqual({
+      name: '',
+      email: 'sender@example.com',
+    });
+  });
+
+  it('表示名前後のダブルクォートを除去する', () => {
+    expect(parseFrom('"Sender Name" <sender@example.com>')).toEqual({
+      name: 'Sender Name',
+      email: 'sender@example.com',
+    });
+  });
+});
+
 describe('runGmailDigest', () => {
-  it('2件のNewsletterスレッドをSlackに1回投稿する', () => {
+  it('2件のNewsletterスレッドを親1回とスレッド返信1回でSlackに投稿する', () => {
     vi.mocked(GmailApp.search).mockReturnValue([
-      createThread('Subject 1', 'sender1@example.com', '本文1'),
-      createThread('Subject 2', 'sender2@example.com'),
+      createThread('Subject 1', '"Sender One" <sender1@example.com>', '本文1', 'https://mail/1'),
+      createThread('Subject 2', 'sender2@example.com', '本文2', 'https://mail/2'),
     ]);
 
     runGmailDigest();
@@ -75,34 +98,68 @@ describe('runGmailDigest', () => {
         /^label:Newsletter after:\d{4}\/\d{2}\/\d{2} before:\d{4}\/\d{2}\/\d{2}$/
       )
     );
-    expect(UrlFetchApp.fetch).toHaveBeenCalledTimes(1);
-    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[0];
-    const payload = JSON.parse((options as { payload: string }).payload) as { text: string };
-    expect(payload.text).toContain('Subject 1');
-    expect(payload.text).toContain('sender1@example.com');
-    expect(payload.text).toContain('本文1');
-    expect(payload.text).toContain('Subject 2');
-    expect(payload.text).toContain('sender2@example.com');
+    expect(UrlFetchApp.fetch).toHaveBeenCalledTimes(2);
+
+    const parentPayload = getSlackPayload(0);
+    expect(parentPayload.text).toContain('📬 昨日のNewsletter');
+    expect(parentPayload.text).toContain('2件');
+    expect(parentPayload.blocks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'header' }),
+        expect.objectContaining({ type: 'section' }),
+      ])
+    );
+
+    const replyPayload = getSlackPayload(1);
+    expect(replyPayload.thread_ts).toBe('123.456');
+    expect(JSON.stringify(replyPayload.blocks)).toContain('Subject 1');
+    expect(JSON.stringify(replyPayload.blocks)).toContain('Sender One');
+    expect(JSON.stringify(replyPayload.blocks)).toContain('sender1@example.com');
+    expect(JSON.stringify(replyPayload.blocks)).toContain('https://mail/1');
+    expect(JSON.stringify(replyPayload.blocks)).toContain('メールを開く');
   });
 
-  it('Newsletterスレッドが0件の場合もSlackに該当なしを投稿する', () => {
+  it('11件のNewsletterスレッドを親1回とスレッド返信2回にチャンク分割する', () => {
+    vi.mocked(GmailApp.search).mockReturnValue(
+      Array.from({ length: 11 }, (_, i) =>
+        createThread(
+          `Subject ${i + 1}`,
+          `sender${i + 1}@example.com`,
+          `本文${i + 1}`,
+          `https://mail/${i + 1}`
+        )
+      )
+    );
+
+    runGmailDigest();
+
+    expect(UrlFetchApp.fetch).toHaveBeenCalledTimes(3);
+    expect(getSlackPayload(1).thread_ts).toBe('123.456');
+    expect(getSlackPayload(2).thread_ts).toBe('123.456');
+    expect(getSlackPayload(1).blocks).toHaveLength(30);
+    expect(getSlackPayload(2).blocks).toHaveLength(3);
+  });
+
+  it('Newsletterスレッドが0件の場合は親のみ投稿してスレッド返信しない', () => {
     vi.mocked(GmailApp.search).mockReturnValue([]);
 
     runGmailDigest();
 
     expect(UrlFetchApp.fetch).toHaveBeenCalledTimes(1);
-    const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[0];
-    const payload = JSON.parse((options as { payload: string }).payload) as { text: string };
-    expect(payload.text).toContain('ありません');
+    const payload = getSlackPayload(0);
+    expect(payload.text).toContain('Newsletterは届きませんでした');
+    expect(payload.thread_ts).toBeUndefined();
   });
 });
 
 function createThread(
   subject: string,
   from: string,
-  body = ''
+  body = '',
+  permalink = 'https://mail/default'
 ): GoogleAppsScript.Gmail.GmailThread {
   return {
+    getPermalink: vi.fn().mockReturnValue(permalink),
     getMessages: vi.fn().mockReturnValue([
       {
         getSubject: vi.fn().mockReturnValue(subject),
@@ -111,4 +168,13 @@ function createThread(
       },
     ]),
   } as unknown as GoogleAppsScript.Gmail.GmailThread;
+}
+
+function getSlackPayload(index: number): {
+  text: string;
+  blocks?: unknown[];
+  thread_ts?: string;
+} {
+  const [, options] = vi.mocked(UrlFetchApp.fetch).mock.calls[index];
+  return JSON.parse((options as { payload: string }).payload);
 }
