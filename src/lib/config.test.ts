@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getConfig,
-  getDlpConfig,
   getGeminiConfig,
   getGmailDigestConfig,
   getNotionConfig,
@@ -24,7 +23,6 @@ describe('getConfig', () => {
       NOTION_DB_ID: 'db-id',
       SLACK_BOT_TOKEN: 'xoxb-test',
       SLACK_CHANNEL_ID: 'C123456',
-      DLP_PROJECT_ID: 'dlp-project',
     });
 
     const config = getConfig();
@@ -37,7 +35,6 @@ describe('getConfig', () => {
       notionDbId: 'db-id',
       slackBotToken: 'xoxb-test',
       slackChannelId: 'C123456',
-      dlpProjectId: 'dlp-project',
     });
     expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
@@ -51,7 +48,6 @@ describe('getConfig', () => {
       NOTION_DB_ID: 'db-id',
       SLACK_BOT_TOKEN: 'xoxb-test',
       SLACK_CHANNEL_ID: 'C123456',
-      DLP_PROJECT_ID: 'dlp-project',
     });
 
     getConfig();
@@ -60,7 +56,6 @@ describe('getConfig', () => {
     getGeminiConfig();
     getNotionConfig();
     getGmailDigestConfig();
-    getDlpConfig();
 
     expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
@@ -78,7 +73,6 @@ describe('getConfig', () => {
       notionDbId: '',
       slackBotToken: '',
       slackChannelId: '',
-      dlpProjectId: '',
     });
   });
 
@@ -91,7 +85,6 @@ describe('getConfig', () => {
       NOTION_DB_ID: 'db-id',
       SLACK_BOT_TOKEN: 'xoxb-test',
       SLACK_CHANNEL_ID: 'C123456',
-      DLP_PROJECT_ID: 'dlp-project',
     });
 
     expect(getSecretConfig()).toEqual({
@@ -108,9 +101,6 @@ describe('getConfig', () => {
     expect(getGmailDigestConfig()).toEqual({
       slackBotToken: 'xoxb-test',
       slackChannelId: 'C123456',
-    });
-    expect(getDlpConfig()).toEqual({
-      dlpProjectId: 'dlp-project',
     });
     expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
