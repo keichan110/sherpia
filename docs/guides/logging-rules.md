@@ -20,9 +20,9 @@
 
 | 関数 | タイミング | レベル | 含める情報 |
 |---|---|---|---|
-| `doPost` | URL 受付成功 | INFO | `url` |
-| `doPost` | 重複 URL | ERROR | `err`, `url` |
-| `doPost` | Notion 書き込み失敗 | ERROR | `err`, `url` |
+| `acceptUrlPost` | URL 受付成功 | INFO | `url` |
+| `acceptUrlPost` | 重複 URL | ERROR | `err`, `url` |
+| `acceptUrlPost` | Notion 書き込み失敗 | ERROR | `err`, `url` |
 | `processTrendingQiita` | フィード取得失敗 | ERROR | `err` |
 | `processTrendingQiita` | 重複 URL スキップ | WARN | `url`（バルク登録では重複が想定されるためエラーではない） |
 | `processTrendingQiita` | 登録失敗 | ERROR | `err`, `url` |
