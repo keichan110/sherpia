@@ -1,11 +1,7 @@
-import {
-  acceptUrlPost,
-  processPendingArticles as runArticleIngestPendingArticles,
-  processTrendingQiita as runArticleIngestTrendingQiita,
-  processTrendingZenn as runArticleIngestTrendingZenn,
-} from './pipelines/article-ingest';
-import { runGmailDigest as runGmailDigestPipeline } from './pipelines/gmail-digest';
-import { runLabelCleanup as runGmailLabelCleanupPipeline } from './pipelines/gmail-label-cleanup';
+import { authenticatePostRequest } from './lib/auth';
+import { runCadence } from './lib/scheduler';
+import { acceptUrlPost } from './pipelines/article-ingest';
+import { HOURLY_SCHEDULE, TEN_MINUTE_SCHEDULE } from './schedule';
 
 /**
  * iOSショートカットからのPOSTリクエストをarticle-ingest Pipelineへ渡す。
@@ -13,46 +9,26 @@ import { runLabelCleanup as runGmailLabelCleanupPipeline } from './pipelines/gma
  * @returns 処理結果を含むJSONレスポンス
  */
 export function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Content.TextOutput {
-  return acceptUrlPost(e);
+  const auth = authenticatePostRequest(e);
+  if (!auth.success) return auth.response;
+
+  return acceptUrlPost(auth.body);
 }
 
 /**
- * Qiitaのトレンドフィード登録をarticle-ingest Pipelineで実行する。
- * GASタイムトリガー（日次）から呼び出される。
- */
-export function processTrendingQiita(): void {
-  runArticleIngestTrendingQiita();
-}
-
-/**
- * Zennのトレンドフィード登録をarticle-ingest Pipelineで実行する。
- * GASタイムトリガー（日次）から呼び出される。
- */
-export function processTrendingZenn(): void {
-  runArticleIngestTrendingZenn();
-}
-
-/**
- * 処理待ち記事の1件処理をarticle-ingest Pipelineで実行する。
- * 10分間隔のGASタイムトリガーから呼び出される。
- */
-export function processPendingArticles(): void {
-  runArticleIngestPendingArticles();
-}
-
-/**
- * アーカイブ済みメールの運用ラベル整理をgmail-label-cleanup Pipelineで実行する。
- * GASタイムトリガー（日次）から呼び出される。
- */
-export function runGmailLabelCleanup(): void {
-  runGmailLabelCleanupPipeline();
-}
-
-/**
- * 前日のNewsletterメールをSlackにダイジェスト投稿するgmail-digest Pipelineを実行する。
- * GASタイムトリガー（日次・7時台）から呼び出される。
+ * 10分間隔のGASトリガースロットでarticle-ingestのpending処理を実行する。
  * @returns なし
  */
-export function runGmailDigest(): void {
-  runGmailDigestPipeline();
+export function triggerEvery10Minutes(): void {
+  runCadence(TEN_MINUTE_SCHEDULE);
 }
+
+/**
+ * 毎時のGASトリガースロットで宣言的スケジュールテーブルを分岐実行する。
+ * @returns なし
+ */
+export function triggerHourly(): void {
+  runCadence(HOURLY_SCHEDULE);
+}
+
+// triggerEveryMinuteは将来の即時通知レーン用に予約するが、現時点では作らない。
