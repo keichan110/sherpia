@@ -1,8 +1,14 @@
 export type SlackBotToken = string & { readonly __brand: 'SlackBotToken' };
 export type SlackChannelId = string & { readonly __brand: 'SlackChannelId' };
+export type SlackAttachment = {
+  color?: string;
+  blocks?: unknown[];
+};
+
 export type SlackPostMessageParams = {
   text: string;
   blocks?: unknown[];
+  attachments?: SlackAttachment[];
   threadTs?: string;
 };
 
@@ -18,12 +24,18 @@ export function postMessage(
   channel: SlackChannelId,
   params: SlackPostMessageParams
 ): string {
-  const payload: { channel: SlackChannelId; text: string; blocks?: unknown[]; thread_ts?: string } =
-    {
-      channel,
-      text: params.text,
-    };
+  const payload: {
+    channel: SlackChannelId;
+    text: string;
+    blocks?: unknown[];
+    attachments?: SlackAttachment[];
+    thread_ts?: string;
+  } = {
+    channel,
+    text: params.text,
+  };
   if (params.blocks) payload.blocks = params.blocks;
+  if (params.attachments) payload.attachments = params.attachments;
   if (params.threadTs) payload.thread_ts = params.threadTs;
 
   const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
