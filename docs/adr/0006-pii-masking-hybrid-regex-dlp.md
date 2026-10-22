@@ -1,7 +1,9 @@
 # ADR-0006: 個人情報マスキングを「regex（URL・ラベル付きID）＋ DLP（構造化PII）」のハイブリッドにする
 
-- Status: Accepted
+- Status: Deprecated（2026-10-22 gmail-digest廃止に伴う）
 - Date: 2026-06-22
+
+> **注記（2026-10-22）**: gmail-digest の廃止に伴い、本ADRは**廃止（Deprecated）**とした。該当する実装（`src/lib/mask.ts`・`src/capabilities/dlp.ts`・OAuthスコープ `cloud-platform`）は削除済み。本文は経緯の記録として残す。
 
 ## Context
 
