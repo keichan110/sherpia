@@ -73,7 +73,7 @@ updateRecord() [notion.ts]        ← Notion API でレコードをステータ�
 
 **バンドル方式**: GASはES modules非対応のため、Rollupで単一ファイル（`dist/bundle.js`）に結合してESM形式で出力する。`disableEntryPointTreeShaking`プラグインによりエントリポイントの関数が除去されないよう保護し、`export {}` 行も除去している。`doPost`・`testRun`等のGASエントリポイント関数はglobalに露出する必要があるため、`biome-ignore`コメントで`noUnusedVariables`を抑制している。
 
-**設定値**: すべてGASのスクリプトプロパティで管理（`SECRET_TOKEN`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `NOTION_ACCESS_TOKEN`, `NOTION_DB_ID`, `SLACK_BOT_TOKEN`, `SLACK_NOTIFY_CHANNEL_ID`, `SLACK_ERROR_CHANNEL_ID`, `DLP_PROJECT_ID`）。`.clasp.json` はgit管理外。
+**設定値**: すべてGASのスクリプトプロパティで管理（`SECRET_TOKEN`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `NOTION_ACCESS_TOKEN`, `NOTION_DB_ID`, `SLACK_BOT_TOKEN`, `SLACK_NOTIFY_CHANNEL_ID`, `SLACK_ERROR_CHANNEL_ID`）。`.clasp.json` はgit管理外。
 
 ### モジュール構成
 

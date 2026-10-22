@@ -4,7 +4,6 @@ import {
   processTrendingQiita,
   processTrendingZenn,
 } from './pipelines/article-ingest';
-import { runGmailDigest } from './pipelines/gmail-digest';
 import { runLabelCleanup as runGmailLabelCleanup } from './pipelines/gmail-label-cleanup';
 import { runWeeklyNotionSummary } from './pipelines/weekly-notion-summary';
 
@@ -25,12 +24,6 @@ export const TEN_MINUTE_SCHEDULE: readonly Job[] = [
  * 毎時トリガーで分岐する宣言的スケジュールテーブル。
  */
 export const HOURLY_SCHEDULE: readonly Job[] = [
-  {
-    name: 'gmail-digest:overnight',
-    weight: 'heavy',
-    at: dailyAt(7),
-    run: () => runGmailDigest(),
-  },
   {
     name: 'trends:qiita',
     weight: 'light',
