@@ -31,10 +31,6 @@ vi.stubGlobal('Session', {
   getScriptTimeZone: vi.fn().mockReturnValue('Asia/Tokyo'),
 });
 
-vi.stubGlobal('ScriptApp', {
-  getOAuthToken: vi.fn().mockReturnValue('test-token'),
-});
-
 const mockTextOutput = {
   setMimeType: vi.fn().mockReturnThis(),
 };
