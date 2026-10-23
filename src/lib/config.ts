@@ -1,4 +1,3 @@
-import type { DlpProjectId } from '../capabilities/dlp';
 import type { GeminiApiKey, GeminiModel } from '../capabilities/gemini';
 import type { NotionConnectAccessToken, NotionDbId } from '../capabilities/notion';
 import type { SlackBotToken, SlackChannelId } from '../capabilities/slack';
@@ -12,17 +11,14 @@ export type Config = {
   slackBotToken: SlackBotToken;
   slackNotifyChannelId: SlackChannelId;
   slackErrorChannelId: SlackChannelId;
-  dlpProjectId: DlpProjectId;
 };
 
 export type SecretConfig = Pick<Config, 'secretToken'>;
 export type GeminiConfig = Pick<Config, 'geminiApiKey' | 'geminiModel'>;
 export type NotionConfig = Pick<Config, 'notionAccessToken' | 'notionDbId'>;
 export type SlackConfig = Pick<Config, 'slackBotToken' | 'slackNotifyChannelId'>;
-export type GmailDigestConfig = Pick<Config, 'slackBotToken' | 'slackNotifyChannelId'>;
 export type WeeklySummaryConfig = Pick<Config, 'slackBotToken' | 'slackNotifyChannelId'>;
 export type NotifyConfig = Pick<Config, 'slackBotToken' | 'slackErrorChannelId'>;
-export type DlpConfig = Pick<Config, 'dlpProjectId'>;
 
 type ConfigSnapshot = Record<string, string>;
 
@@ -53,7 +49,6 @@ function buildConfig(snapshot: ConfigSnapshot): Config {
     slackBotToken: (snapshot.SLACK_BOT_TOKEN ?? '') as SlackBotToken,
     slackNotifyChannelId: (snapshot.SLACK_NOTIFY_CHANNEL_ID ?? '') as SlackChannelId,
     slackErrorChannelId: (snapshot.SLACK_ERROR_CHANNEL_ID ?? '') as SlackChannelId,
-    dlpProjectId: snapshot.DLP_PROJECT_ID ?? '',
   };
 }
 
@@ -93,15 +88,6 @@ export function getNotionConfig(): NotionConfig {
 }
 
 /**
- * Gmailダイジェスト用のSlack投稿先設定をキャッシュ済みスクリプトプロパティから取得する。
- * @returns Slack投稿先設定
- */
-export function getGmailDigestConfig(): GmailDigestConfig {
-  const { slackBotToken, slackNotifyChannelId } = buildConfig(getConfigSnapshot());
-  return { slackBotToken, slackNotifyChannelId };
-}
-
-/**
  * weekly-notion-summary用のSlack投稿先設定をキャッシュ済みスクリプトプロパティから取得する。
  * @returns Slack投稿先設定
  */
@@ -117,15 +103,6 @@ export function getWeeklySummaryConfig(): WeeklySummaryConfig {
 export function getNotifyConfig(): NotifyConfig {
   const { slackBotToken, slackErrorChannelId } = buildConfig(getConfigSnapshot());
   return { slackBotToken, slackErrorChannelId };
-}
-
-/**
- * DLP設定をキャッシュ済みスクリプトプロパティから取得する。
- * @returns DLPプロジェクトID
- */
-export function getDlpConfig(): DlpConfig {
-  const { dlpProjectId } = buildConfig(getConfigSnapshot());
-  return { dlpProjectId };
 }
 
 /**

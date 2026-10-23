@@ -1,7 +1,9 @@
 # ADR-0003: gmail-digest の出力をBlock Kit化し親メッセージ＋スレッド返信に分割する
 
-- Status: Accepted
+- Status: Deprecated（2026-10-22 gmail-digest廃止に伴う）
 - Date: 2026-06-21
+
+> **注記（2026-10-22）**: gmail-digest の廃止に伴い、本ADRは**廃止（Deprecated）**とした。該当する実装（`src/pipelines/gmail-digest/`）は削除済み。本文は経緯の記録として残す。
 
 ## Context
 

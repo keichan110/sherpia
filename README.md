@@ -11,7 +11,6 @@
 | 機能 | 概要 |
 |---|---|
 | 記事要約（article-ingest） | iOS ショートカットやトレンドフィードから受けた URL を Gemini API で要約し、Notion のナレッジ DB に自動保存する |
-| Newsletter ダイジェスト（gmail-digest） | 前日に届いた Newsletter メールをまとめ、Slack へダイジェスト投稿する |
 | ラベル整理（gmail-label-cleanup） | アーカイブ済みメールに残った運用ラベルを自動で外す |
 
 ## 技術スタック

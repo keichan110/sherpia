@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getConfig,
-  getDlpConfig,
   getGeminiConfig,
-  getGmailDigestConfig,
   getNotifyConfig,
   getNotionConfig,
   getSecretConfig,
@@ -27,7 +25,6 @@ describe('getConfig', () => {
       SLACK_BOT_TOKEN: 'xoxb-test',
       SLACK_NOTIFY_CHANNEL_ID: 'C123456',
       SLACK_ERROR_CHANNEL_ID: 'C789012',
-      DLP_PROJECT_ID: 'dlp-project',
     });
 
     const config = getConfig();
@@ -41,7 +38,6 @@ describe('getConfig', () => {
       slackBotToken: 'xoxb-test',
       slackNotifyChannelId: 'C123456',
       slackErrorChannelId: 'C789012',
-      dlpProjectId: 'dlp-project',
     });
     expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
@@ -56,7 +52,6 @@ describe('getConfig', () => {
       SLACK_BOT_TOKEN: 'xoxb-test',
       SLACK_NOTIFY_CHANNEL_ID: 'C123456',
       SLACK_ERROR_CHANNEL_ID: 'C789012',
-      DLP_PROJECT_ID: 'dlp-project',
     });
 
     getConfig();
@@ -64,10 +59,8 @@ describe('getConfig', () => {
     getSecretConfig();
     getGeminiConfig();
     getNotionConfig();
-    getGmailDigestConfig();
     getWeeklySummaryConfig();
     getNotifyConfig();
-    getDlpConfig();
 
     expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });
@@ -86,7 +79,6 @@ describe('getConfig', () => {
       slackBotToken: '',
       slackNotifyChannelId: '',
       slackErrorChannelId: '',
-      dlpProjectId: '',
     });
   });
 
@@ -100,7 +92,6 @@ describe('getConfig', () => {
       SLACK_BOT_TOKEN: 'xoxb-test',
       SLACK_NOTIFY_CHANNEL_ID: 'C123456',
       SLACK_ERROR_CHANNEL_ID: 'C789012',
-      DLP_PROJECT_ID: 'dlp-project',
     });
 
     expect(getSecretConfig()).toEqual({
@@ -114,10 +105,6 @@ describe('getConfig', () => {
       notionAccessToken: 'notion-key',
       notionDbId: 'db-id',
     });
-    expect(getGmailDigestConfig()).toEqual({
-      slackBotToken: 'xoxb-test',
-      slackNotifyChannelId: 'C123456',
-    });
     expect(getWeeklySummaryConfig()).toEqual({
       slackBotToken: 'xoxb-test',
       slackNotifyChannelId: 'C123456',
@@ -125,9 +112,6 @@ describe('getConfig', () => {
     expect(getNotifyConfig()).toEqual({
       slackBotToken: 'xoxb-test',
       slackErrorChannelId: 'C789012',
-    });
-    expect(getDlpConfig()).toEqual({
-      dlpProjectId: 'dlp-project',
     });
     expect(PropertiesService.getScriptProperties().getProperties).toHaveBeenCalledTimes(1);
   });

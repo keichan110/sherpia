@@ -1,7 +1,9 @@
 # ADR-0002: Gmail由来の2機能（ラベル整理・Newsletterダイジェスト）の設計
 
-- Status: Accepted
+- Status: Deprecated（2026-10-22 gmail-digest廃止に伴う。ラベル整理の決定のみ有効）
 - Date: 2026-06-21
+
+> **注記（2026-10-22）**: gmail-digest の廃止に伴い、本ADRは**廃止（Deprecated）**とした。機能2（Newsletterダイジェスト）の実装（`src/pipelines/gmail-digest/`）は削除済み。ただし機能1（ラベル整理）は現行の gmail-label-cleanup としてそのまま運用中で、その設計判断は引き続き有効。本文は経緯の記録として残す。
 
 ## Context
 
